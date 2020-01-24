@@ -1,0 +1,3 @@
+#!/bin/bash
+
+flux hwloc reload /usr/local/etc/flux/workflow-examples-hwloc
