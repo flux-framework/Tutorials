@@ -10,23 +10,23 @@
 
 4. List running jobs:
 
-`flux job list`
+`flux jobs`
 
-```  
-JOBID		       STATE	  USERID   PRI     T_SUBMIT
-640671547392	   R	      58985	   16	   2019-10-22T16:27:02Z
-1045388328960	   R	      58985	   16	   2019-10-22T16:27:26Z
+```
+             JOBID USER     NAME       STATE    NTASKS RUNTIME
+      825757794304 ubuntu   io-forward RUN           1 5.535s
+      735798362112 ubuntu   compute.lu RUN           4 11s
 ```
 
 5. Get information about job:
 
-`flux job info 640671547392 R`
+`flux job info 735798362112 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"0-1","children":{"core":"0-3"}}]}}
 ```
 
-`flux job info 1045388328960 R`
+`flux job info 825757794304 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"2","children":{"core":"0-1"}}]}}
@@ -44,24 +44,23 @@ JOBID		       STATE	  USERID   PRI     T_SUBMIT
 
 4. List jobs in KVS:
 
-`flux job list`
+`flux jobs`
 
 ```
-JOBID		       STATE	  USERID   PRI     T_SUBMIT
-2098158632960	   R	      58985	   16	   2019-10-22T16:35:25Z
-2331043168256	   R	      58985	   16	   2019-10-22T16:35:39Z
-
+             JOBID USER     NAME       STATE    NTASKS RUNTIME
+      282779975680 ubuntu   io-forward RUN           3 12s
+       98348040192 ubuntu   compute.lu RUN           6 23s
 ```
 
 5. Get information about job:
 
-`flux job info 2098158632960 R`
+`flux job info 98348040192 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"2","children":{"core":"2-5"}},{"rank":"0-1","children":{"core":"4-7"}}]}}
 ```
 
-`flux job info 2331043168256 R`
+`flux job info 282779975680 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"2","children":{"core":"6-7"}},{"rank":"0","children":{"core":"8"}}]}}
