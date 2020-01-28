@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import time
@@ -13,5 +13,5 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-print "Will compute for " + str(args.integer) + " seconds."
+print("Will compute for " + str(args.integer) + " seconds.")
 time.sleep(args.integer)
