@@ -12,23 +12,23 @@
 
 3. List currently running jobs:
 
-`flux job list`
+`flux jobs`
 
 ```
-JOBID		STATE	USERID	PRI	NAME		T_SUBMIT
-316703506432	R	58985	16	./io-forwarding	2019-12-16T21:54:19Z
-316250521600	R	58985	16	./compute.py   	2019-12-16T21:54:19Z
+       JOBID USER     NAME       STATE    NTASKS RUNTIME
+249024217088 ubuntu   io-forward RUN           1 3.583s
+248688672768 ubuntu   compute.py RUN           4 3.667s
 ```
 
 4. Information about jobs, such as the submitted job specification, an eventlog, and the resource description format **R** are stored in the KVS. The data can be queried via the `job-info` module via the `flux job info` command. For example, to fetch **R** for a job which has been allocated resources:
 
-`flux job info 316703506432 R`
+`flux job info 248688672768 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"0-1","children":{"core":"0-3"}}]}}
 ```
 
-`flux job info 316250521600 R`
+`flux job info 249024217088 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"2","children":{"core":"0"}}]}}
@@ -51,20 +51,20 @@ JOBID		STATE	USERID	PRI	NAME		T_SUBMIT
 `flux job list`
 
 ```
-JOBID		STATE	USERID	PRI	NAME		T_SUBMIT
-266187309056	R	58985	16	./io-forwarding	2019-12-16T22:01:59Z
-265767878656	R	58985	16	./compute.py   	2019-12-16T22:01:59Z
+        JOBID USER     NAME       STATE    NTASKS RUNTIME
+1729898741760 ubuntu   io-forward RUN           3 6.371s
+1729563197440 ubuntu   compute.py RUN           6 6.473s
 ```
 
 4. Fetch **R** for the jobs that have been allocated resources:
 
-`flux job info 266187309056 R`
+`flux job info 1729898741760 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"0-2","children":{"core":"4"}}]}}
 ```
 
-`flux job info 265767878656 R`
+`flux job info 1729563197440 R`
 
 ```
 {"version":1,"execution":{"R_lite":[{"rank":"0-2","children":{"core":"0-3"}}]}}

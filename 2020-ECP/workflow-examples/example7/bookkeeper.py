@@ -1,18 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import json
 import os
-import flux
 import argparse
 
+import flux
+from flux.job import JobspecV1
+
 compute_jobreq = JobspecV1.from_command(
-    command=["./compute.py", "120"], num_tasks=6, num_nodes=3, cores_per_task=2
+    command=["./compute.py", "10"], num_tasks=6, num_nodes=3, cores_per_task=2
 )
 compute_jobreq.cwd = os.getcwd()
 compute_jobreq.environment = dict(os.environ)
 
 io_jobreq = JobspecV1.from_command(
-    command=["./io-forwarding.py", "120"], num_tasks=3, num_nodes=3, cores_per_task=1
+    command=["./io-forwarding.py", "10"], num_tasks=3, num_nodes=3, cores_per_task=1
 )
 io_jobreq.cwd = os.getcwd()
 io_jobreq.environment = dict(os.environ)
@@ -23,7 +25,7 @@ njobs = 0
 def job_state_cb(f, typemask, message, arg):
     global njobs
     N = args.integer
-    for jobid, state in message.payload["transitions"]:
+    for jobid, state, time in message.payload["transitions"]:
         print("job " + str(jobid) + " changed its state to " + str(state))
         if state == "INACTIVE":
             njobs += 1

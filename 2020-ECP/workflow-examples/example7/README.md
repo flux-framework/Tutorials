@@ -11,6 +11,11 @@
 `./bookkeeper.py 5`
 
 ```
+141732243046
+141775863808
+141816129126
+282058555392
+285564993536
 bookkeeper: all jobs submitted
 bookkeeper: waiting until all jobs complete
 job 1417322430464 changed its state to DEPEND
@@ -45,7 +50,7 @@ bookkeeper: all jobs completed
 - The following constructs a job request using the **JobspecV1** class with customizable parameters for how you want to utilize the resources allocated for your job:
 ```python
 compute_jobreq = JobspecV1.from_command(
-    command=["./compute.py", "120"], num_tasks=4, num_nodes=2, cores_per_task=2
+    command=["./compute.py", "10"], num_tasks=4, num_nodes=2, cores_per_task=2
 )
 compute_jobreq.cwd = os.getcwd()
 compute_jobreq.environment = dict(os.environ)
