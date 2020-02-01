@@ -48,7 +48,7 @@
 
 3. List currently running jobs:
 
-`flux job list`
+`flux jobs`
 
 ```
         JOBID USER     NAME       STATE    NTASKS RUNTIME
