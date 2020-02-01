@@ -15,6 +15,6 @@ Schedule/launch compute and io-forwarding jobs on separate nodes using the Lua a
 
 Submit job bundles and wait until all jobs complete
 
-**_9. [A Data Conduit Strategy](https://github.com/flux-framework/Tutorials/tree/master/2020-ECP/workflow-examples/example9)_**
+**_10. [Python Job Submit/Wait](https://github.com/flux-framework/Tutorials/tree/master/2020-ECP/workflow-examples/example10)_**
 
-Attach to a job that receives OS time data from compute jobs
+Submit jobs and wait for them to complete using the Flux Python bindings
