@@ -18,7 +18,7 @@
       735798362112 ubuntu   compute.lu RUN           4 11s
 ```
 
-5. Get information about job:
+5. Information about jobs, such as the submitted job specification, an eventlog, and the resource description format **R** are stored in the KVS. The data can be queried via the `job-info` module via the `flux job info` command. For example, to fetch **R** for a job which has been allocated resources:
 
 `flux job info 735798362112 R`
 
