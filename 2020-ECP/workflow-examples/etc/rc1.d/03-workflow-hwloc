@@ -1,0 +1,5 @@
+#!/bin/bash
+
+flux hwloc reload /usr/local/etc/flux/workflow-examples-hwloc
+flux module remove sched-simple
+flux module load sched-simple
