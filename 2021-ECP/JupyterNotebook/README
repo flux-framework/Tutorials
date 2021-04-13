@@ -1,0 +1,7 @@
+The Jupyter Notebook runs some scripts from the flux-workflow-examples
+repository, so please ensure that a clone of this exists in the same location
+as the ECPTutorial.ipynb notebook. 
+
+git clone https://github.com/flux-framework/flux-workflow-examples.git
+
+
