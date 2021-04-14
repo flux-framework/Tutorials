@@ -2,7 +2,7 @@
 
 echo "Starting my batch job"
 echo "Print the resources allocated to this batch job"
-flux hwloc info
+flux resource list
 
 echo "Use sleep to emulate a parallel program"
 echo "Run the program at a total of 2 processes each requiring"
