@@ -4,4 +4,7 @@ as the ECPTutorial.ipynb notebook.
 
 git clone https://github.com/flux-framework/flux-workflow-examples.git
 
-
+Docker instructions are in the docker-script file.
+Note that in some cases the flux start command may not work from the Jupyter 
+notebook and may have to be run within the terminal before utilizing the
+notebook.
