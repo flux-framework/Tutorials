@@ -1,0 +1,24 @@
+ARG JUPYTERHUB_VERSION=2.3.1
+
+FROM jupyterhub/jupyterhub:$JUPYTERHUB_VERSION
+
+ARG GLOBAL_PASSWORD
+
+RUN python3 -m pip install --no-cache dockerspawner jupyterhub-dummyauthenticator
+COPY jupyterhub_config.py /srv/jupyterhub/jupyterhub_config.py
+
+RUN echo "c.DummyAuthenticator.password = \"${GLOBAL_PASSWORD}\"" >> /srv/jupyterhub/jupyterhub_config.py
+
+# Generate self-signed cert and key for local use
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:4096 \
+          -subj  "/C=US/ST=CA/O=radiuss-tutorial/CN=radiuss-test.com" \
+          -keyout jupyter-selfsigned.key \
+          -out juptyer-selfsigned.crt
+
+# Or copy cert and key signed by a trusted CA
+# COPY fullchain.pem /srv/jupyterhub/fullchain.pem
+# COPY privkey.pem /srv/jupyterhub/privkey.pem
+
+# Add template override directory and copy our example
+RUN mkdir /srv/jupyterhub/overrides
+COPY login.html /srv/jupyterhub/overrides/login.html
