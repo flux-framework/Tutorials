@@ -35,8 +35,8 @@ RUN mv ecp_feb_2023 dyad_demo \
 
 RUN git clone https://github.com/flux-framework/flux-workflow-examples.git
 
-COPY --chown=fluxuser:fluxuser radiuss-aws-flux.ipynb .
-COPY --chown=fluxuser:fluxuser dyad-aws.ipynb .
+COPY --chown=fluxuser:fluxuser ecp23-flux.ipynb .
+COPY --chown=fluxuser:fluxuser ecp23-flux-dyad.ipynb .
 COPY --chown=fluxuser:fluxuser dyad_example1.svg .
 COPY --chown=fluxuser:fluxuser dyad_example2.svg .
 COPY --chown=fluxuser:fluxuser sleep_batch.sh .
