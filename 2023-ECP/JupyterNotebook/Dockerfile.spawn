@@ -1,0 +1,52 @@
+FROM fluxrm/flux-sched:focal
+
+ARG JUPYTERHUB_VERSION=2.3.1
+
+RUN sudo apt-get update
+RUN DEBIAN_FRONTEND="noninteractive" sudo apt-get -y install \
+    python3-pip \
+    npm \
+    curl \
+    && sudo apt-get clean \
+    && sudo apt-get autoremove \
+    && sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN pip3 install --upgrade pip \
+    && pip3 install setuptools-rust zipp==3.7.0 \
+    && pip3 install jupyterhub==${JUPYTERHUB_VERSION} \
+    && sudo npm install -g configurable-http-proxy \
+    && python3 -m pip install jupyterlab notebook \
+    && echo "export PATH=$HOME/.local/bin:$PATH" >> "$HOME/.bashrc"
+
+RUN git clone https://github.com/flux-framework/dyad.git \
+    && cd dyad \
+    && cp -r docs/demos/ecp_feb_2023 .. \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr CC=$(which gcc) CXX=$(which g++) \
+    && make -j \
+    && sudo make install \
+    && cd .. \
+    && rm -rf dyad
+
+RUN mv ecp_feb_2023 dyad_demo \
+    && cd dyad_demo \
+    && CC=$(which gcc) CXX=$(which g++) make all \
+    && cd ..
+
+RUN git clone https://github.com/flux-framework/flux-workflow-examples.git
+
+COPY --chown=fluxuser:fluxuser ecp23-flux.ipynb .
+COPY --chown=fluxuser:fluxuser ecp23-flux-dyad.ipynb .
+COPY --chown=fluxuser:fluxuser dyad_example1.svg .
+COPY --chown=fluxuser:fluxuser dyad_example2.svg .
+COPY --chown=fluxuser:fluxuser sleep_batch.sh .
+COPY --chown=fluxuser:fluxuser sleeps.sh .
+COPY --chown=fluxuser:fluxuser sub_job1.sh .
+COPY --chown=fluxuser:fluxuser sub_job2.sh .
+COPY --chown=fluxuser:fluxuser Flux-logo.svg .
+
+ENV SHELL=/usr/bin/bash
+ENV FLUX_URI_RESOLVE_LOCAL=t
+
+CMD PATH=$HOME/.local/bin:$PATH \
+    flux start --test-size=4 /home/fluxuser/.local/bin/jupyterhub-singleuser
