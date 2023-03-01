@@ -20,6 +20,7 @@ RUN pip3 install --upgrade pip \
 
 RUN git clone https://github.com/flux-framework/dyad.git \
     && cd dyad \
+    && git checkout v0.1.1 \
     && cp -r docs/demos/ecp_feb_2023 .. \
     && ./autogen.sh \
     && ./configure --prefix=/usr CC=$(which gcc) CXX=$(which g++) \
