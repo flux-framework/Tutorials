@@ -8,14 +8,11 @@
 hub:
   concurrentSpawnLimit: 4
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
+  # Note you can remove pullPolicy: Always if you don't expect to update containers
   image: 
     name: vanessa/flux-jupyter-hub
     tag: latest
     pullPolicy: Always
-
-  # Extend the JupyterHub HTML templates
-  templatePaths:
-    - /srv/jupyterhub/overrides/
 
 # This is the "spawn" image
 singleuser:

@@ -1,0 +1,91 @@
+# https://www.arhea.net/posts/2020-06-18-jupyterhub-amazon-eks
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: jupyterhub
+  region: us-east-2
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: cluster-autoscaler
+        namespace: kube-system
+        labels:
+            aws-usage: "cluster-ops"
+            app.kubernetes.io/name: cluster-autoscaler
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "autoscaling:DescribeAutoScalingGroups"
+              - "autoscaling:DescribeAutoScalingInstances"
+              - "autoscaling:DescribeLaunchConfigurations"
+              - "autoscaling:DescribeTags"
+              - "autoscaling:SetDesiredCapacity"
+              - "autoscaling:TerminateInstanceInAutoScalingGroup"
+              - "ec2:DescribeLaunchTemplateVersions"
+            Resource: '*'
+
+    - metadata:
+        name: ebs-csi-controller-sa
+        namespace: kube-system
+        labels:
+            aws-usage: "cluster-ops"
+            app.kubernetes.io/name: aws-ebs-csi-driver
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "ec2:AttachVolume"
+              - "ec2:CreateSnapshot"
+              - "ec2:CreateTags"
+              - "ec2:CreateVolume"
+              - "ec2:DeleteSnapshot"
+              - "ec2:DeleteTags"
+              - "ec2:DeleteVolume"
+              - "ec2:DescribeInstances"
+              - "ec2:DescribeSnapshots"
+              - "ec2:DescribeTags"
+              - "ec2:DescribeVolumes"
+              - "ec2:DetachVolume"
+            Resource: '*'
+
+
+managedNodeGroups:
+  - name: ng-us-east-2a
+    instanceType: m5.large
+    volumeSize: 30
+    desiredCapacity: 1
+    privateNetworking: true
+    availabilityZones:
+      - us-east-2a
+
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/jupyterhub: "owned"
+
+  - name: ng-us-east-2b
+    instanceType: m5.large
+    volumeSize: 30
+    desiredCapacity: 1
+    privateNetworking: true
+    availabilityZones:
+      - us-east-2b
+
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/jupyterhub: "owned"
+
+  - name: ng-us-east-2c
+    instanceType: m5.large
+    volumeSize: 30
+    desiredCapacity: 1
+    privateNetworking: true
+    availabilityZones:
+      - us-east-2c
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/jupyterhub: "owned"

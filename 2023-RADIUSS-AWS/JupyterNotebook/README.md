@@ -3,7 +3,7 @@
 Pre-requisites:
 
  - kubectl installed locally
- - A cloud with a Kubernetes cluster deployed (this is currently tested on GCP)
+ - A cloud with a Kubernetes cluster deployed
 
 ## Local Development
 
@@ -18,9 +18,12 @@ docker build -t <desired image name> -f Dockerfile.spawn .
 
 And be sure to push your images to a public registry (or load them locally to your development cluster).
 
+
 ### 1. Deploy Cluster
 
-In practice, a production cluster is desired. I used Google Cloud.
+#### Google Cloud
+
+Here is how to create the cluster on Google Cloud using gcloud (and assuming you have logged in):
 
 ```bash
 export GOOGLE_PROJECT=myproject
@@ -29,7 +32,24 @@ gcloud container clusters create flux-jupyter --project $GOOGLE_PROJECT \
     --num-nodes=4 --enable-network-policy --enable-intra-node-visibility
 ```
 
-This still needs to be tested on EKS.
+#### AWS
+
+I originally was going to follow the instructions [here](https://z2jh.jupyter.org/en/stable/kubernetes/amazon/step-zero-aws-eks.html) but then I decided I wanted to live, so I found an eksctl way to do it instead. :)
+Here is how to create an equivalent cluster on AWS (EKS).
+
+```bash
+$ eksctl create cluster --config-file aws/eksctl-config.yaml 
+```
+
+Then generate a secret token - we will add this to [config-aws.yaml](config-aws.yaml)
+This will deploy an EBS CSI driver:
+
+```bash
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+```
+
+And you can read about [gp2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) class.
+Finally, we need to ask aws to generate us a [certificate](https://aws.amazon.com/certificate-manager/). See the [config-aws.yaml](config-aws.yaml) links for more detail, and [this blog post](https://www.arhea.net/posts/2020-06-18-jupyterhub-amazon-eks) that I created my configs from.
 
 ### 2. Deploy JupyterHub
 
@@ -729,10 +749,14 @@ global:
 
 </details>
 
-And here is how to deploy, assuming the default namespace.
+And here is how to deploy, assuming the default namespace. Please choose your cloud appropriately!
 
 ```bash
+# This is for Google Cloud
 helm install flux-jupyter jupyterhub/jupyterhub --values config.yaml
+
+# This is for Amazon EKS
+helm install flux-jupyter jupyterhub/jupyterhub --values config-aws.yaml
 ```
 
 That command will hang (it takes a while) but you can see progress in another terminal:
@@ -752,7 +776,8 @@ proxy-d9dfbf77b-v488t             1/1     Running   0          5m31s
 user-scheduler-587fcc5479-c4mmk   1/1     Running   0          5m31s
 user-scheduler-587fcc5479-x6jmk   1/1     Running   0          5m31s
 ```
-And the terminal provides a lot of useful output:
+
+(The numbers of each above might vary based on the size of your cluster). And the terminal provides a lot of useful output:
 
 ```console
 NAME: flux-jupyter
@@ -845,15 +870,34 @@ or:
 kubectl get service proxy-public --output jsonpath='{.status.loadBalancer.ingress[].ip}'
 ```
 
+Note that for Google, it looks like an ip address. For aws you get a string monster!
+
+```console
+a054af2758c1549f780a433e5515a9d4-1012389935.us-east-2.elb.amazonaws.com
+```
+
 It also (previously) told us we could get the insecure http access on localhost.
 At this point, you should be able to login as any user, open the notebook (nested two levels)
 and interact with Flux!
 
 ### Clean up
 
+For both:
+
 ```bash
 helm uninstall flux-jupyter
+```
 
+For Google Cloud:
+
+```bash
+gcloud container clusters delete flux-jupyter
+```
+
+For AWS:
+
+```bash
+$ eksctl delete cluster --config-file aws/eksctl-config.yaml 
 ```
 
 ## Local

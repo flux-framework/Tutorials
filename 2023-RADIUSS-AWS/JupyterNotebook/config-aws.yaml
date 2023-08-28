@@ -1,0 +1,66 @@
+# A few notes!
+# The hub -> authentic class defaults to "dummy"
+# We shouldn't need any image pull secrets assuming public
+# There is a note about the database being a sqlite pvc
+# (and a TODO for better solution for Kubernetes)
+
+# This is the concurrent spawn limit, likely should be increased (deafults to 64)
+hub:
+  concurrentSpawnLimit: 4
+  # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
+  image: 
+    name: vanessa/flux-jupyter-hub
+    tag: latest
+    pullPolicy: Always
+
+# This is how we ensure ssl - we would need to request a certificate for a domain and get an ARG
+# I didn't think I should try doing this.
+# proxy:
+  # Make sure to replace this with a new: openssl rand -hex 32
+#  secretToken: af20ca1bbc0753f2af046dc7ee2fd96666ae906207dadc0a5941b9ea6a954b9f
+#  https:
+#    enabled: true
+#    type: offload
+
+#  service:
+#    annotations:
+#      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<arn of certificate>"
+#      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+#      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+#      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
+
+# This is the "spawn" image
+singleuser:
+  image:
+    name: vanessa/flux-jupyter-spawn
+    tag: latest
+    pullPolicy: Always
+  cpu:
+    limit: 1
+  memory:
+    limit: '4G'
+  cmd: /entrypoint.sh
+
+  initContainers:
+    - name: init-myservice
+      image: alpine/git
+      command: ['git', 'clone', "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-radiuss-tutorial-2023"]
+      volumeMounts:
+        - name: flux-tutorial
+          mountPath: /home/jovyan
+
+  # This is how we get the tutorial files added
+  storage:
+    capacity: 4Gi
+    dynamic:
+      storageClass: gp2
+
+    # gitRepo volume is deprecated so we need another way
+    # https://kubernetes.io/docs/concepts/storage/volumes/#gitrepo
+    extraVolumes:
+      - name: flux-tutorial
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: flux-tutorial
+        mountPath: /home/jovyan/flux-tutorial
+        # subPath: flux-radiuss-tutorial-2023
