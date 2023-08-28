@@ -897,8 +897,12 @@ gcloud container clusters delete flux-jupyter
 For AWS:
 
 ```bash
+# If you don't do this first, it will tell the pods are un-evictable and loop forever
+$ kubectl delete pod --all-namespaces --all --force
+# Then delete the cluster
 $ eksctl delete cluster --config-file aws/eksctl-config.yaml 
 ```
+
 
 ## Local
 
