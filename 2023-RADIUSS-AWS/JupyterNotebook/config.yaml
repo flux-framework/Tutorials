@@ -1,0 +1,41 @@
+# A few notes!
+# The hub -> authentic class defaults to "dummy"
+# We shouldn't need any image pull secrets assuming public
+# There is a note about the database being a sqlite pvc
+# (and a TODO for better solution for Kubernetes)
+
+# This is the concurrent spawn limit, likely should be increased (deafults to 64)
+hub:
+  concurrentSpawnLimit: 4
+  # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
+  image: 
+    name: vanessa/flux-jupyter-hub
+    tag: latest
+    pullPolicy: Always
+
+  # Extend the JupyterHub HTML templates
+  templatePaths:
+    - /srv/jupyterhub/overrides/
+
+# This is the "spawn" image
+singleuser:
+  image:
+    name: vanessa/flux-jupyter-spawn
+    tag: latest
+    pullPolicy: Always
+  cpu:
+    limit: 1
+  memory:
+    limit: '4G'
+  cmd: /entrypoint.sh
+
+  # This is how we get the tutorial files added
+  storage:
+    extraVolumes:
+      - name: flux-tutorial
+        gitRepo:
+          repository: https://github.com/rse-ops/flux-radiuss-tutorial-2023
+    extraVolumeMounts:
+      - name: flux-tutorial
+        mountPath: /home/jovyan/flux-tutorial
+        subPath: flux-radiuss-tutorial-2023

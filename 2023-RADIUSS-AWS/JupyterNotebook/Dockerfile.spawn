@@ -1,0 +1,55 @@
+FROM fluxrm/flux-sched:jammy
+
+# Based off of https://github.com/jupyterhub/zero-to-jupyterhub-k8s/tree/main/images/singleuser-sample
+# I tried to copy the logic there within the flux container here
+
+USER root
+
+ENV NB_USER=jovyan \
+    NB_UID=1000 \
+    HOME=/home/jovyan
+
+RUN adduser \
+        --disabled-password \
+        --gecos "Default user" \
+        --uid ${NB_UID} \
+        --home ${HOME} \
+        --force-badname \
+        ${NB_USER}
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        dnsutils \
+        iputils-ping \
+        python3-pip \
+        tini \
+        # requirement for nbgitpuller
+        git \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY ./requirements.txt ./requirements.txt
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    python -m pip install -r requirements.txt && \
+    python -m pip install ipython==7.34.0 && \
+    python -m IPython kernel install
+
+# No permission errors here
+USER ${NB_USER}
+WORKDIR $HOME
+
+# note that previous examples are added via git volume in config.yaml
+ENV SHELL=/usr/bin/bash
+ENV FLUX_URI_RESOLVE_LOCAL=t
+
+EXPOSE 8888
+ENTRYPOINT ["tini", "--"]
+COPY ./entrypoint.sh /entrypoint.sh
+CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
+
+# CMD PATH=$HOME/.local/bin:$PATH \
+#    flux start --test-size=4 /home/fluxuser/.local/bin/jupyterhub-singleuser
+
+# CMD PATH=$HOME/.local/bin:$PATH \
+# flux start --test-size=4 /home/fluxuser/.local/bin/jupyter lab
