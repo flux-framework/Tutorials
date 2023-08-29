@@ -20,6 +20,14 @@ hub:
     tag: latest
     pullPolicy: Always
 
+# https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
+scheduling:
+  podPriority:
+    enabled: true
+  userPlaceholder:
+    # Specify 3 dummy user pods will be used as placeholders
+    replicas: 3
+
 proxy:
   https:
     enabled: true

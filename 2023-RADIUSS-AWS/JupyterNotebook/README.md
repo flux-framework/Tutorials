@@ -60,6 +60,15 @@ are interested in how it works. We emulate the logic there using eksctl. Then ge
 kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
 ```
 
+And install the cluster-autoscaler:
+
+```bash
+$ kubectl apply -f aws/cluster-autoscaler-autodiscover.yaml 
+```
+
+Most of the information I needed to read about this was [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md) - the Jupyter documentation wasn't super helpful beyond saying to install it. Also note that I got this (seemingly working) without the propogateASGTags set to true, but that is something that I've seen have issue.
+You can look at the autoscaler pod logs for information.
+
 While the spawned containers (e.g., where you run your notebook) don't use these volumes, the hub will.
 You can read about [gp2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) class.
 Note that we will be using [config-aws.yaml](aws/config-aws.yaml) if you don't need SSL, and [config-aws-ssl.yaml](aws/config-aws-ssl.yaml) if you do. For the latter, the jupyter spawner will generate let's encrypt certificates for us, given that we have correctly configured DNS.
@@ -779,6 +788,7 @@ global:
 #### Changes You Might Need to Make:
 
 - Change the config*.yaml image-> name and tag that you deploy to use your images.
+- You might want to change the number of user placeholder pods
 - Also change the hub->concurrentSpawnLimit
 - Change the password, ssl secret, and domain name if applicable
 - Change the aws/eksctl-config.yaml autoscaling ranges depending on your needs.

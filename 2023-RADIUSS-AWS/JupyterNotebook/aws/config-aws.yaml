@@ -7,17 +7,26 @@
 # This is the concurrent spawn limit, likely should be increased (deafults to 64)
 hub:
   concurrentSpawnLimit: 10
-  # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
-  image: 
-    name: vanessa/flux-jupyter-hub
-    tag: latest
-    pullPolicy: Always
   config:
     DummyAuthenticator:
       password: butter
     JupyterHub:
       admin_access: true
       authenticator_class: dummy
+
+  # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
+  image: 
+    name: vanessa/flux-jupyter-hub
+    tag: latest
+    pullPolicy: Always
+
+# https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
+scheduling:
+  podPriority:
+    enabled: true
+  userPlaceholder:
+    # Specify 3 dummy user pods will be used as placeholders
+    replicas: 3
 
 # This is the "spawn" image
 singleuser:
