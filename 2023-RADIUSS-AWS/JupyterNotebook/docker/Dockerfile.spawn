@@ -1,0 +1,92 @@
+FROM fluxrm/flux-sched:jammy
+
+# Based off of https://github.com/jupyterhub/zero-to-jupyterhub-k8s/tree/main/images/singleuser-sample
+# Local usage
+# docker run -p 8888:8888 -v $(pwd):/home/jovyan/work test
+
+USER root
+
+ENV NB_USER=jovyan \
+    NB_UID=1000 \
+    HOME=/home/jovyan
+
+RUN adduser \
+        --disabled-password \
+        --gecos "Default user" \
+        --uid ${NB_UID} \
+        --home ${HOME} \
+        --force-badname \
+        ${NB_USER}
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        dnsutils \
+        iputils-ping \
+        python3-pip \
+        tini \
+        # requirement for nbgitpuller
+        git \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY ./requirements.txt ./requirements.txt
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    python -m pip install -r requirements.txt && \
+    python -m pip install ipython==7.34.0 && \
+    python -m IPython kernel install
+
+# This is code to install DYAD
+# This was added to the RADIUSS 2023 tutorials on AWS
+RUN git clone https://github.com/openucx/ucx.git \
+    && cd ucx \
+    && git checkout v1.13.1 \
+    && ./autogen.sh \
+    && ./configure --disable-optimizations --enable-logging --enable-debug --disable-assertions --enable-mt --disable-params-check \
+       --without-go --without-java --disable-cma --without-cuda --without-gdrcopy --without-verbs --without-knem --without-rmdacm \
+       --without-rocm --without-xpmem --without-fuse3 --without-ugni --prefix=/usr CC=$(which gcc) CXX=$(which g++) \
+    && make -j \
+    && sudo make install \
+    && cd .. \
+    && rm -rf ucx
+
+RUN git clone https://github.com/TauferLab/dyad.git \
+    && cd dyad \
+    && git checkout ucx \
+    && cp -r docs/demos/ecp_feb_2023 .. \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr CC=$(which gcc) CXX=$(which g++) --enable-dyad-debug \
+    && make -j \
+    && sudo make install \
+    && cd .. \
+    && rm -rf dyad
+
+RUN mv ecp_feb_2023 /opt/dyad_demo \
+    && cd /opt/dyad_demo \
+    && CC=$(which gcc) CXX=$(which g++) make all \
+    && cd ..
+
+# No permission errors here
+USER ${NB_USER}
+WORKDIR $HOME
+
+# note that previous examples are added via git volume in config.yaml
+ENV SHELL=/usr/bin/bash
+ENV FLUX_URI_RESOLVE_LOCAL=t
+
+EXPOSE 8888
+ENTRYPOINT ["tini", "--"]
+
+# This is for JupyterHub
+COPY ./docker/entrypoint.sh /entrypoint.sh
+
+# This is for a local start
+COPY ./docker/start.sh /start.sh
+CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
+
+# This won't be available in K8s, but will be for a single container build
+RUN git clone https://github.com/rse-ops/flux-radiuss-tutorial-2023 /home/jovyan/flux-radiuss-tutorial-2023
+
+# Previous command for non-kubernetes
+# CMD PATH=$HOME/.local/bin:$PATH \
+#    flux start --test-size=4 /home/fluxuser/.local/bin/jupyterhub-singleuser
