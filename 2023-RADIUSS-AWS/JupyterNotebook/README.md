@@ -16,6 +16,8 @@ For AWS Tutorial Day users:
 
 > To run the AWS tutorial, visit https://tutorial.flux-framework.org. You can use any login you want, but choose something relatvely uncommon  (like your email address) or you may end up sharing a JupyterLab  instance with another user. The tutorial password will be provided to you. 
 
+If you are looking for the raw notebook files, [they are here](https://github.com/rse-ops/flux-radiuss-tutorial-2023).
+
 ## Build Images
 
 Let's build a set of images - one spawner and one hub.
@@ -66,7 +68,7 @@ And install the cluster-autoscaler:
 $ kubectl apply -f aws/cluster-autoscaler-autodiscover.yaml 
 ```
 
-Most of the information I needed to read about this was [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md) - the Jupyter documentation wasn't super helpful beyond saying to install it. Also note that I got this (seemingly working) without the propogateASGTags set to true, but that is something that I've seen have issue.
+Most of the information I needed to read about this was [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md) - the Jupyter documentation wasn't super helpful beyond saying to install it. Also note that I got this (seemingly working) without the `propagateASGTags` set to true, but that is something that I've seen have issue.
 You can look at the autoscaler pod logs for information.
 
 While the spawned containers (e.g., where you run your notebook) don't use these volumes, the hub will.
@@ -164,7 +166,7 @@ hub:
     ## type: Recreate
     ## - sqlite-pvc backed hubs require the Recreate deployment strategy as a
     ##   typical PVC storage can only be bound to one pod at the time.
-    ## - JupyterHub isn't designed to support being run in parallell. More work
+    ## - JupyterHub isn't designed to support being run in parallel. More work
     ##   needs to be done in JupyterHub itself for a fully highly available (HA)
     ##   deployment of JupyterHub on k8s is to be possible.
     type: Recreate
@@ -945,6 +947,7 @@ Note that for Google, it looks like an ip address. For aws you get a string mons
 a054af2758c1549f780a433e5515a9d4-1012389935.us-east-2.elb.amazonaws.com
 ```
 
+This might take a minute to fully be there - if it doesn't work immediately give it that.
 At this point, you should be able to login as any user, open the notebook (nested two levels)
 and interact with Flux! Remember that if you don't see the service, try deleting everything and
 starting fresh. If that doesn't work, there might be some new error we didn't anticipate,
@@ -972,6 +975,9 @@ $ kubectl delete pod --all-namespaces --all --force
 # Then delete the cluster
 $ eksctl delete cluster --config-file aws/eksctl-config.yaml --wait
 ```
+
+In practice, you'll need to start deleting with `eksctl` and then you will see the pod eviction warning
+(because they were re-created) and you'll need to run the command again, and then it will clean up.
 
 ## Local Usage
 
