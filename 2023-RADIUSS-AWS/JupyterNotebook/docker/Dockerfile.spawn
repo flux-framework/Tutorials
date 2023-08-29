@@ -1,7 +1,8 @@
 FROM fluxrm/flux-sched:jammy
 
 # Based off of https://github.com/jupyterhub/zero-to-jupyterhub-k8s/tree/main/images/singleuser-sample
-# I tried to copy the logic there within the flux container here
+# Local usage
+# docker run -p 8888:8888 -v $(pwd):/home/jovyan/work test
 
 USER root
 
@@ -45,11 +46,17 @@ ENV FLUX_URI_RESOLVE_LOCAL=t
 
 EXPOSE 8888
 ENTRYPOINT ["tini", "--"]
-COPY ./entrypoint.sh /entrypoint.sh
+
+# This is for JupyterHub
+COPY ./docker/entrypoint.sh /entrypoint.sh
+
+# This is for a local start
+COPY ./docker/start.sh /start.sh
 CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
 
+# This won't be available in K8s, but will be for a single container build
+RUN git clone https://github.com/rse-ops/flux-radiuss-tutorial-2023 /home/jovyan/flux-radiuss-tutorial-2023
+
+# Previous command for non-kubernetes
 # CMD PATH=$HOME/.local/bin:$PATH \
 #    flux start --test-size=4 /home/fluxuser/.local/bin/jupyterhub-singleuser
-
-# CMD PATH=$HOME/.local/bin:$PATH \
-# flux start --test-size=4 /home/fluxuser/.local/bin/jupyter lab

@@ -6,17 +6,15 @@
 
 # This is the concurrent spawn limit, likely should be increased (deafults to 64)
 hub:
-  concurrentSpawnLimit: 4
+  concurrentSpawnLimit: 10
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
   image: 
     name: vanessa/flux-jupyter-hub
     tag: latest
     pullPolicy: Always
   config:
-    KubeSpawner:
-      working_dir: /home/jovyan/flux-tutorial/flux-tutorial/2023-RADIUSS-AWS/JupyterNotebook/tutorial
     DummyAuthenticator:
-      password: blueberrypancakes 
+      password: butter
     JupyterHub:
       admin_access: true
       authenticator_class: dummy
@@ -36,7 +34,7 @@ singleuser:
   initContainers:
     - name: init-myservice
       image: alpine/git
-      command: ['git', 'clone', "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-radiuss-tutorial-2023"]
+      command: ["git", "clone", "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-tutorial"]
       volumeMounts:
         - name: flux-tutorial
           mountPath: /home/jovyan
@@ -51,5 +49,4 @@ singleuser:
         emptyDir: {}
     extraVolumeMounts:
       - name: flux-tutorial
-        mountPath: /home/jovyan/flux-tutorial
-        # subPath: flux-radiuss-tutorial-2023
+        mountPath: /home/jovyan

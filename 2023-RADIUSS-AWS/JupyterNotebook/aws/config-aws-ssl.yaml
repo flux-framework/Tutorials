@@ -6,20 +6,27 @@
 
 # This is the concurrent spawn limit, likely should be increased (deafults to 64)
 hub:
-  concurrentSpawnLimit: 4
+  concurrentSpawnLimit: 10
+  config:
+    DummyAuthenticator:
+      password: butter
+    JupyterHub:
+      admin_access: true
+      authenticator_class: dummy
+      
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
   image: 
     name: vanessa/flux-jupyter-hub
     tag: latest
     pullPolicy: Always
-  config:
-    KubeSpawner:
-      working_dir: /home/jovyan/flux-tutorial/flux-tutorial/2023-RADIUSS-AWS/JupyterNotebook/tutorial
-    DummyAuthenticator:
-      password: blueberrypancakes 
-    JupyterHub:
-      admin_access: true
-      authenticator_class: dummy
+
+proxy:
+  https:
+    enabled: true
+    hosts:
+      - test.flux-tutorial.com
+    letsencrypt:
+      contactEmail: you@email.com
 
 # This is the "spawn" image
 singleuser:
@@ -36,7 +43,7 @@ singleuser:
   initContainers:
     - name: init-myservice
       image: alpine/git
-      command: ['git', 'clone', "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-radiuss-tutorial-2023"]
+      command: ["git", "clone", "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-tutorial"]
       volumeMounts:
         - name: flux-tutorial
           mountPath: /home/jovyan
@@ -44,6 +51,7 @@ singleuser:
   # This is how we get the tutorial files added
   storage:
     type: none
+
     # gitRepo volume is deprecated so we need another way
     # https://kubernetes.io/docs/concepts/storage/volumes/#gitrepo
     extraVolumes:
@@ -51,5 +59,4 @@ singleuser:
         emptyDir: {}
     extraVolumeMounts:
       - name: flux-tutorial
-        mountPath: /home/jovyan/flux-tutorial
-        # subPath: flux-radiuss-tutorial-2023
+        mountPath: /home/jovyan

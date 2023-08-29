@@ -56,9 +56,14 @@ iam:
 
 managedNodeGroups:
   - name: ng-us-east-2a
+    # TODO we need to try this - autoscaling needs a policy
+    #withAddonPolicies:
+    #  autoScaler: true
     instanceType: m5.large
     volumeSize: 30
     desiredCapacity: 1
+    minSize: 1
+    maxSize: 3
     privateNetworking: true
     availabilityZones:
       - us-east-2a
@@ -68,9 +73,13 @@ managedNodeGroups:
       k8s.io/cluster-autoscaler/jupyterhub: "owned"
 
   - name: ng-us-east-2b
+    #withAddonPolicies:
+    # autoScaler: true
     instanceType: m5.large
     volumeSize: 30
     desiredCapacity: 1
+    minSize: 1
+    maxSize: 3 
     privateNetworking: true
     availabilityZones:
       - us-east-2b
@@ -80,9 +89,13 @@ managedNodeGroups:
       k8s.io/cluster-autoscaler/jupyterhub: "owned"
 
   - name: ng-us-east-2c
+    #withAddonPolicies:
+    #  autoScaler: true
     instanceType: m5.large
     volumeSize: 30
     desiredCapacity: 1
+    minSize: 1
+    maxSize: 3
     privateNetworking: true
     availabilityZones:
       - us-east-2c

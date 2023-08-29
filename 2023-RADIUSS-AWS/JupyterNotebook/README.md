@@ -1,29 +1,41 @@
 # Flux + Jupyter via KubeSpawner
 
+This set of tutorials provides:
+
+ - [Building Base Images](#build-images)
+ - [Deploy A Cluster to AWS or Google Cloud Using](#deploy-to-kubernetes) using Google Cloud or AWS
+ - [Local Development or Usage](#local-usage)
+
 Pre-requisites:
 
- - kubectl installed locally
- - A cloud with a Kubernetes cluster deployed
+ - kubectl, (eksctl|gcloud), and (optionally) docker installed locally
+ - A cloud with a Kubernetes cluster deployed (AWS and Google)
+ - Excitement to learn about Flux!
 
-## Local Development
+For AWS Tutorial Day users:
 
-### 0. Build Images
+> To run the AWS tutorial, visit https://tutorial.flux-framework.org. You can use any login you want, but choose something relatvely uncommon  (like your email address) or you may end up sharing a JupyterLab  instance with another user. The tutorial password will be provided to you. 
+
+## Build Images
 
 Let's build a set of images - one spawner and one hub.
 
 ```bash
-docker build --build-arg GLOBAL_PASSWORD=<password of your choice> -t <desired image name> -f Dockerfile.hub .
-docker build -t <desired image name> -f Dockerfile.spawn .
+docker build -t <desired image name> -f docker/Dockerfile.hub .
+docker build -t <desired image name> -f docker/Dockerfile.spawn .
 ```
 
 And be sure to push your images to a public registry (or load them locally to your development cluster).
+Remember that if you just want to test locally, you can jump to the [local usage](#local-usage) section.
 
+## Deploy to Kubernetes
 
-### 1. Deploy Cluster
+### 1. Create Cluster
 
 #### Google Cloud
 
-Here is how to create the cluster on Google Cloud using gcloud (and assuming you have logged in):
+Here is how to create the cluster on Google Cloud using [gcloud](https://cloud.google.com/sdk/docs/install) (and assuming you have logged in
+with [gcloud auth login](https://cloud.google.com/sdk/gcloud/reference/auth/login):
 
 ```bash
 export GOOGLE_PROJECT=myproject
@@ -34,33 +46,48 @@ gcloud container clusters create flux-jupyter --project $GOOGLE_PROJECT \
 
 #### AWS
 
-I originally was going to follow the instructions [here](https://z2jh.jupyter.org/en/stable/kubernetes/amazon/step-zero-aws-eks.html) but then I decided I wanted to live, so I found an eksctl way to do it instead. :)
-Here is how to create an equivalent cluster on AWS (EKS).
+Here is how to create an equivalent cluster on AWS (EKS). We will be using [eksctl](https://eksctl.io/introduction/), which
+you should install.
 
 ```bash
 $ eksctl create cluster --config-file aws/eksctl-config.yaml 
 ```
 
-Then generate a secret token - we will add this to [config-aws.yaml](config-aws.yaml)
-This will deploy an EBS CSI driver:
+You can find vanilla (manual) instructions [here](https://z2jh.jupyter.org/en/stable/kubernetes/amazon/step-zero-aws-eks.html) if you
+are interested in how it works. We emulate the logic there using eksctl. Then generate a secret token - we will add this to [config-aws.yaml](aws/config-aws.yaml) (without SSL) or [config-aws-ssl.yaml](aws/config-aws-ssl.yaml) (with SSL). When your cluster is ready, this will deploy an EBS CSI driver:
 
 ```bash
 kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
 ```
 
-And you can read about [gp2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) class.
-Finally, we need to ask aws to generate us a [certificate](https://aws.amazon.com/certificate-manager/). See the [config-aws.yaml](config-aws.yaml) links for more detail, and [this blog post](https://www.arhea.net/posts/2020-06-18-jupyterhub-amazon-eks) that I created my configs from.
+While the spawned containers (e.g., where you run your notebook) don't use these volumes, the hub will.
+You can read about [gp2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) class.
+Note that we will be using [config-aws.yaml](aws/config-aws.yaml) if you don't need SSL, and [config-aws-ssl.yaml](aws/config-aws-ssl.yaml) if you do. For the latter, the jupyter spawner will generate let's encrypt certificates for us, given that we have correctly configured DNS.
 
 ### 2. Deploy JupyterHub
 
-We store Kubernetes manifests (the yaml files) alongside the repository since the helm charts are subject to change. Here is how we originally generated them.
+We will use [helm](https://helm.sh/docs/helm/helm_install/) to install charts and deploy.
 
 ```bash
 helm repo add jupyterhub https://hub.jupyter.org/helm-chart/
 helm repo update
 ```
 
-See the values we can set, which likely will come from the [config.yaml](config.yaml).
+You can see the versions available:
+
+```bash
+helm search repo jupyterhub
+```
+```console
+NAME                 	CHART VERSION	APP VERSION	DESCRIPTION                                       
+bitnami/jupyterhub   	4.2.0        	4.0.2      	JupyterHub brings the power of notebooks to gro...
+jupyterhub/jupyterhub	3.0.2        	4.0.2      	Multi-user Jupyter installation                   
+jupyterhub/pebble    	1.0.1        	v2.3.1     	This Helm chart bootstraps Pebble: an ACME serv...
+```
+
+Note that chart versions don't always coincide with software (or "app") versions. At the time of writing this,
+we are using the jupyterhub/jupyterhub	3.0.2/4.0.2 versions, and our container bases point to 3.0.2 tags for the
+corresponding images. Next, see the values we can set, which likely will come from a config*.yaml that we will choose.
 
 ```bash
 helm show values jupyterhub/jupyterhub
@@ -749,20 +776,52 @@ global:
 
 </details>
 
+#### Changes You Might Need to Make:
+
+- Change the config*.yaml image-> name and tag that you deploy to use your images.
+- Also change the hub->concurrentSpawnLimit
+- Change the password, ssl secret, and domain name if applicable
+- Change the aws/eksctl-config.yaml autoscaling ranges depending on your needs.
+- Remove pullPolicy Always if you don't expect to want to update/re-pull an image every time (ideal for production)
+
 And here is how to deploy, assuming the default namespace. Please choose your cloud appropriately!
 
 ```bash
 # This is for Google Cloud
-helm install flux-jupyter jupyterhub/jupyterhub --values config.yaml
+helm install flux-jupyter jupyterhub/jupyterhub --values gcp/config.yaml
 
-# This is for Amazon EKS
-helm install flux-jupyter jupyterhub/jupyterhub --values config-aws.yaml
+# This is for Amazon EKS without SSL
+helm install flux-jupyter jupyterhub/jupyterhub --values aws/config-aws.yaml
+
+# This is for Amazon EKS with SSL (assuming DNS is configured)
+helm install flux-jupyter jupyterhub/jupyterhub --values aws/config-aws-ssl.yaml
 ```
 
-That command will hang (it takes a while) but you can see progress in another terminal:
+If you mess something up, you can change the file and run `helm upgrade`:
+
+```bash
+helm upgrade flux-jupyter jupyterhub/jupyterhub --values aws/config-aws-ssl.yaml
+```
+
+If you REALLY mess something up, you can tear the whole thing down and then install again:
+
+```bash
+helm uninstall flux-jupyter
+```
+
+Note that in practice of bringing this up and down many times, we have seen the proxy-public
+not create a handful of times. If this happens, just tear down everything, wait for all pods
+to terminate, and then start freshly. When you run a command, also note that the terminal will hang!
+You can see progress in another terminal:
 
 ```bash
 $ kubectl get pods
+```
+
+or try watching:
+
+```bash
+$ kubectl get pods --watch
 ```
 
 When it's done, you should see:
@@ -778,6 +837,10 @@ user-scheduler-587fcc5479-x6jmk   1/1     Running   0          5m31s
 ```
 
 (The numbers of each above might vary based on the size of your cluster). And the terminal provides a lot of useful output:
+
+<details>
+
+<summary>Output of Terminal on Completed Install</summary>
 
 ```console
 NAME: flux-jupyter
@@ -847,11 +910,7 @@ NOTES:
     Try insecure HTTP access: http://localhost:8080
 ```
 
-To run the AWS tutorial, visit https://tutorial.flux-framework.org 
-You can use any login you want, but choose something relatvely uncommon 
-(like your email address) or you may end up sharing a JupyterLab 
-instance with another user. The tutorial password will be provided to you. 
-
+</details>
 
 ### 3. Get Public Proxy
 
@@ -876,9 +935,10 @@ Note that for Google, it looks like an ip address. For aws you get a string mons
 a054af2758c1549f780a433e5515a9d4-1012389935.us-east-2.elb.amazonaws.com
 ```
 
-It also (previously) told us we could get the insecure http access on localhost.
 At this point, you should be able to login as any user, open the notebook (nested two levels)
-and interact with Flux!
+and interact with Flux! Remember that if you don't see the service, try deleting everything and
+starting fresh. If that doesn't work, there might be some new error we didn't anticipate,
+and you can look at logs.
 
 ### Clean up
 
@@ -900,23 +960,25 @@ For AWS:
 # If you don't do this first, it will tell the pods are un-evictable and loop forever
 $ kubectl delete pod --all-namespaces --all --force
 # Then delete the cluster
-$ eksctl delete cluster --config-file aws/eksctl-config.yaml 
+$ eksctl delete cluster --config-file aws/eksctl-config.yaml --wait
 ```
 
-
-## Local
+## Local Usage
 
 If you have Docker available, you can build and run the tutorial with:
 
 ```bash
-docker build --build-arg GLOBAL_PASSWORD=<password of your choice> -t <desired image name> -f Dockerfile.hub .
-docker build -t <desired image name> -f Dockerfile.spawn .
-# You will need to change the spawner image name (`c.DockerSpawner.image`) in 
-# jupyterhub_config.py to the name you chose.
-# Create the jupyter network in Docker:
+docker build -t flux-tutorial -f docker/Dockerfile.spawn .
 docker network create jupyterhub
-docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --net jupyterhub --name jupyterhub -p 8000:8000 <hub image name>
-```
-Then you can point your browser to https://localhost:8000. You will need 
-to override your browser's warning about the certificate in this configuration, too.
 
+# Here is how to run an entirely contained tutorial (the notebook in the container)
+docker run --rm -it --entrypoint /start.sh -v /var/run/docker.sock:/var/run/docker.sock --net jupyterhub --name jupyterhub -p 8888:8888 flux-tutorial
+
+# Here is how to bind the tutorial files locally to make enduring changes!
+docker run --rm -it --entrypoint /start.sh -v /var/run/docker.sock:/var/run/docker.sock -v ./tutorial:/home/jovyan/flux-radiuss-tutorial-2023 --net jupyterhub --name jupyterhub -p 8888:8888 flux-tutorial
+```
+
+You can then open the localhost or 127.0.0.1 (home sweet home!) link in your browser on port 8888.
+You'll want to go to flux-radiuss-tutorial-2023 -> notebook to see the notebook. To see the raw
+files, [visit here](https://github.com/rse-ops/flux-radiuss-tutorial-2023).
+You'll need to select http only (and bypass the no certificate warning).
