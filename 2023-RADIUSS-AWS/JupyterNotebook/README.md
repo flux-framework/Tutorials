@@ -55,7 +55,11 @@ Here is how to create an equivalent cluster on AWS (EKS). We will be using [eksc
 you should install.
 
 ```bash
-$ eksctl create cluster --config-file aws/eksctl-config.yaml 
+# Create an EKS cluster with autoscaling with default storage
+eksctl create cluster --config-file aws/eksctl-config.yaml
+
+# Create an EKS cluster with io1 node storage but no autoscaling, used for the RADIUSS 2023 tutorial
+eksctl create cluster --config-file aws/eksctl-radiuss-tutorial-2023.yaml
 ```
 
 You can find vanilla (manual) instructions [here](https://z2jh.jupyter.org/en/stable/kubernetes/amazon/step-zero-aws-eks.html) if you
@@ -68,7 +72,15 @@ kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernete
 And install the cluster-autoscaler:
 
 ```bash
-$ kubectl apply -f aws/cluster-autoscaler-autodiscover.yaml 
+kubectl apply -f aws/cluster-autoscaler-autodiscover.yaml 
+```
+
+If you want to use a different storage class than the default (`gp2`), you also need to create the new storage class (`io1` here) and set it as the default sc:
+
+```bash
+kubectl apply -f aws/storageclass.yaml
+kubectl patch storageclass io1 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 ```
 
 Most of the information I needed to read about this was [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md) - the Jupyter documentation wasn't super helpful beyond saying to install it. Also note that I got this (seemingly working) without the `propagateASGTags` set to true, but that is something that I've seen have issue.

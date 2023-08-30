@@ -6,13 +6,19 @@
 
 # This is the concurrent spawn limit, likely should be increased (deafults to 64)
 hub:
-  concurrentSpawnLimit: 10
+  concurrentSpawnLimit: 128
   config:
     DummyAuthenticator:
       password: butter
     JupyterHub:
       admin_access: true
       authenticator_class: dummy
+  db:
+    pvc:
+      # Defaults to 1Gi
+      storage: 32Gi
+      # Add the storageclass name, defaults to gp2
+      storageClassName: io1
       
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
   image: 
@@ -32,7 +38,7 @@ proxy:
   https:
     enabled: true
     hosts:
-      - test.flux-tutorial.com
+      - tutorial.flux-framework.org
     letsencrypt:
       contactEmail: you@email.com
 
@@ -43,7 +49,7 @@ singleuser:
     tag: "2023"
     pullPolicy: Always
   cpu:
-    limit: 1
+    limit: 2
   memory:
     limit: '4G'
   cmd: /entrypoint.sh
