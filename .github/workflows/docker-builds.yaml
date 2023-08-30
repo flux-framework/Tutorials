@@ -1,0 +1,46 @@
+name: build containers flux-tutorials
+
+on:
+  pull_request: []
+  workflow_dispatch:
+
+jobs:
+  build-containers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test: [["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:2023"],
+               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:2023"]]
+
+    steps:
+    - name: Clone the code
+      uses: actions/checkout@v3
+
+    - name: GHCR Login
+      if: (github.event_name != 'pull_request')
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Pull Layers (if exist)
+      env:
+        container: ${{ matrix.test[2] }}
+      run: docker pull ${container} || echo "${container} not pushed yet"
+
+    - name: Build Container
+      env:
+        context: ${{ matrix.test[0] }}
+        dockerfile: ${{ matrix.test[1] }}
+        container: ${{ matrix.test[2] }}
+      run: |
+        cd ${context}
+        docker build -f ${dockerfile} -t ${container} .
+
+    - name: Deploy Container
+      if: (github.event_name != 'pull_request')
+      env:
+        container: ${{ matrix.test[2] }}
+      run: docker push ${container}

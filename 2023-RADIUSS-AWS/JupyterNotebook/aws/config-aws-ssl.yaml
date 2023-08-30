@@ -16,8 +16,8 @@ hub:
       
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
   image: 
-    name: vanessa/flux-jupyter-hub
-    tag: latest
+    name: ghcr.io/flux-framework/flux-jupyter-hub
+    tag: "2023"
     pullPolicy: Always
 
 # https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
@@ -39,8 +39,8 @@ proxy:
 # This is the "spawn" image
 singleuser:
   image:
-    name: vanessa/flux-jupyter-spawn
-    tag: latest
+    name: ghcr.io/flux-framework/flux-jupyter-spawn
+    tag: "2023"
     pullPolicy: Always
   cpu:
     limit: 1

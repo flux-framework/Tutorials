@@ -20,14 +20,17 @@ If you are looking for the raw notebook files, [they are here](https://github.co
 
 ## Build Images
 
-Let's build a set of images - one spawner and one hub.
+Let's build a set of images - one spawner and one hub. 
 
 ```bash
-docker build -t <desired image name> -f docker/Dockerfile.hub .
-docker build -t <desired image name> -f docker/Dockerfile.spawn .
+docker build -t ghcr.io/flux-framework/flux-jupyter-hub:2023 -f docker/Dockerfile.hub .
+docker build -t ghcr.io/flux-framework/flux-jupyter-spawn:2023 -f docker/Dockerfile.spawn .
 ```
 
-And be sure to push your images to a public registry (or load them locally to your development cluster).
+Note that these are available under the flux-framework organization GitHub packages, so you shouldn't need
+to build them unless you are developing or changing them. 
+
+If you do build (and use a different name) be sure to push your images to a public registry (or load them locally to your development cluster).
 Remember that if you just want to test locally, you can jump to the [local usage](#local-usage) section.
 
 ## Deploy to Kubernetes
