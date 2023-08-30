@@ -55,7 +55,7 @@ iam:
               - "ec2:DetachVolume"
             Resource: '*'
 
-
+availabilityZones: ["us-east-2a", "us-east-2b", "us-east-2c"]
 managedNodeGroups:
   - name: ng-us-east-2a
     iam:
