@@ -35,6 +35,12 @@
   args:
       sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
 - title: Flux Glossary of Terms
+  source: https://flux-framework.readthedocs.io/en/latest/glossary.html
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Comics
   source: https://flux-framework.readthedocs.io/en/latest/comics/fluxonomicon.html
   description: come and meet FluxBird - the pink bird who knows things!
   type: url
