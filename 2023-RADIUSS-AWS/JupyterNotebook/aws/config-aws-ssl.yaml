@@ -50,8 +50,10 @@ singleuser:
     pullPolicy: Always
   cpu:
     limit: 2
+    guarantee: 2
   memory:
     limit: '4G'
+    guarantee: '4G'
   cmd: /entrypoint.sh
 
   # This runs as the root user, who clones and changes ownership to uid 1000
