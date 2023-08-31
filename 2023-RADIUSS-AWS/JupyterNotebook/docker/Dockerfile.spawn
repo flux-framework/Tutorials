@@ -66,9 +66,18 @@ RUN mv ecp_feb_2023 /opt/dyad_demo \
     && CC=$(which gcc) CXX=$(which g++) make all \
     && cd ..
 
+# This customizes the launcher UI
+# https://jupyter-app-launcher.readthedocs.io/en/latest/usage.html
+RUN python3 -m pip install jupyter_app_launcher && \
+    python3 -m pip install --upgrade jupyter-server && \
+    mkdir -p /usr/local/share/jupyter/lab/jupyter_app_launcher
+COPY ./docker/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/config.yaml
+ENV JUPYTER_APP_LAUNCHER_PATH /usr/local/share/jupyter/lab/jupyter_app_launcher
+
 # No permission errors here
 USER ${NB_USER}
 WORKDIR $HOME
+COPY ./docker/flux-icon.png $HOME/flux-icon.png
 
 # note that previous examples are added via git volume in config.yaml
 ENV SHELL=/usr/bin/bash

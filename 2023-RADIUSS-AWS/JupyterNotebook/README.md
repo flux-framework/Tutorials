@@ -25,6 +25,7 @@ Let's build a set of images - one spawner and one hub.
 ```bash
 docker build -t ghcr.io/flux-framework/flux-jupyter-hub:2023 -f docker/Dockerfile.hub .
 docker build -t ghcr.io/flux-framework/flux-jupyter-spawn:2023 -f docker/Dockerfile.spawn .
+docker build -t ghcr.io/flux-framework/flux-jupyter-init:2023 -f docker/Dockerfile.init .
 ```
 
 Note that these are available under the flux-framework organization GitHub packages, so you shouldn't need
