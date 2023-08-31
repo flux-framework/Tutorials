@@ -18,7 +18,7 @@ hub:
       # Defaults to 1Gi
       storage: 32Gi
       # Add the storageclass name, defaults to gp2
-      storageClassName: io1
+      storageClassName: gp3
       
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
   image: 
@@ -26,13 +26,13 @@ hub:
     tag: "2023"
     pullPolicy: Always
 
-# https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
-scheduling:
-  podPriority:
-    enabled: true
-  userPlaceholder:
-    # Specify 3 dummy user pods will be used as placeholders
-    replicas: 3
+# # https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
+# scheduling:
+#   podPriority:
+#     enabled: true
+#   userPlaceholder:
+#     # Specify 3 dummy user pods will be used as placeholders
+#     replicas: 3
 
 proxy:
   https:

@@ -80,7 +80,7 @@ If you want to use a different storage class than the default (`gp2`), you also 
 
 ```bash
 kubectl apply -f aws/storageclass.yaml
-kubectl patch storageclass io1 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+kubectl patch storageclass gp3 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 ```
 
