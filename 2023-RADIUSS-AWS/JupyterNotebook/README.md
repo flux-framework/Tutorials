@@ -76,7 +76,7 @@ And install the cluster-autoscaler:
 kubectl apply -f aws/cluster-autoscaler-autodiscover.yaml 
 ```
 
-If you want to use a different storage class than the default (`gp2`), you also need to create the new storage class (`io1` here) and set it as the default sc:
+If you want to use a different storage class than the default (`gp2`), you also need to create the new storage class (`gp3` here) and set it as the default storage class:
 
 ```bash
 kubectl apply -f aws/storageclass.yaml
