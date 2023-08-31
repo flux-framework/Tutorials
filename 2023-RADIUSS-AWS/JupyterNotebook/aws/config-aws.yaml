@@ -43,7 +43,7 @@ singleuser:
   # This runs as the root user, who clones and changes ownership to uid 1000
   initContainers:
     - name: init-myservice
-      image: ghcr.io/flux-framework/flux-jupyter-init
+      image: ghcr.io/flux-framework/flux-jupyter-init:2023
       command: ["/entrypoint.sh"]
       volumeMounts:
         - name: flux-tutorial
