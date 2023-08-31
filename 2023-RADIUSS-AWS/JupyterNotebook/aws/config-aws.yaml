@@ -40,10 +40,11 @@ singleuser:
     limit: '4G'
   cmd: /entrypoint.sh
 
+  # This runs as the root user, who clones and changes ownership to uid 1000
   initContainers:
     - name: init-myservice
-      image: alpine/git
-      command: ["git", "clone", "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-tutorial"]
+      image: ghcr.io/flux-framework/flux-jupyter-init
+      command: ["/entrypoint.sh"]
       volumeMounts:
         - name: flux-tutorial
           mountPath: /home/jovyan

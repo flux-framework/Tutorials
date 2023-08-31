@@ -11,6 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         test: [["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:2023"],
+               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:2023"],
                ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:2023"]]
 
     steps:
