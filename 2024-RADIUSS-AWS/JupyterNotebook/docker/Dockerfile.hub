@@ -1,0 +1,9 @@
+ARG JUPYTERHUB_VERSION=3.0.2
+FROM jupyterhub/k8s-hub:$JUPYTERHUB_VERSION
+
+# Add template override directory and copy our example
+# Replace the default
+USER root
+RUN mv /usr/local/share/jupyterhub/templates/login.html /usr/local/share/jupyterhub/templates/_login.html
+COPY ./docker/login.html /usr/local/share/jupyterhub/templates/login.html
+USER jovyan
