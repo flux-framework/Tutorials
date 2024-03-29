@@ -10,9 +10,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: [["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:2023"],
-               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:2023"],
-               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:2023"]]
+# Tutorial is over - these builds are disabled
+#        test: [["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:2023"],
+#               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:2023"],
+#               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:2023"]]
+        test: [["2024-RIKEN-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:riken-2024"],
+               ["2024-RIKEN-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:riken-2024"],
+               ["2024-RIKEN-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:riken-2024"]]
 
     steps:
     - name: Clone the code
