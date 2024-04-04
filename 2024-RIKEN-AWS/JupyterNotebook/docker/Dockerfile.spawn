@@ -50,6 +50,9 @@ RUN git clone https://github.com/openucx/ucx.git \
     && cd .. \
     && rm -rf ucx
 
+# This won't be available in K8s, but will be for a single container build
+COPY ./tutorial /home/jovyan/flux-tutorial-2024
+
 RUN git clone https://github.com/flux-framework/dyad.git \
     && cd dyad \
     && git checkout tutorial-riken-2024 \
@@ -65,7 +68,8 @@ RUN git clone https://github.com/flux-framework/dyad.git \
     && rm -rf dyad \
     && rm /home/jovyan/dlio_benchmark/*.sh \
     && rm -r /home/jovyan/dlio_benchmark/perf_analysis \
-    && mv /home/jovyan/dlio_benchmark /home/jovyan/dlio_extensions
+    && mv /home/jovyan/dlio_benchmark /home/jovyan/dlio_extensions \
+    && mv /home/jovyan/dlio_extensions /home/jovyan/flux-tutorial-2024
 
 # This adds the flux-tree command, which is provided in flux-sched source
 # but not installed alongside production flux-core
@@ -98,13 +102,6 @@ COPY ./docker/entrypoint.sh /entrypoint.sh
 # This is for a local start
 COPY ./docker/start.sh /start.sh
 CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
-
-# This won't be available in K8s, but will be for a single container build
-COPY ./tutorial /home/jovyan/flux-tutorial-2024
-
-USER root
-RUN mv /home/jovyan/dlio_extensions /home/jovyan/flux-tutorial-2024
-USER ${NB_USER}
 
 # Previous command for non-kubernetes
 # CMD PATH=$HOME/.local/bin:$PATH \
