@@ -11,24 +11,24 @@ ENV NB_USER=jovyan \
     HOME=/home/jovyan
 
 RUN adduser \
-        --disabled-password \
-        --gecos "Default user" \
-        --uid ${NB_UID} \
-        --home ${HOME} \
-        --force-badname \
-        ${NB_USER}
+    --disabled-password \
+    --gecos "Default user" \
+    --uid ${NB_UID} \
+    --home ${HOME} \
+    --force-badname \
+    ${NB_USER}
 
 RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        dnsutils \
-        iputils-ping \
-        python3-pip \
-        tini \
-        # requirement for nbgitpuller
-        git \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    dnsutils \
+    iputils-ping \
+    python3-pip \
+    tini \
+    # requirement for nbgitpuller
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt ./requirements.txt
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
@@ -43,28 +43,29 @@ RUN git clone https://github.com/openucx/ucx.git \
     && git checkout v1.13.1 \
     && ./autogen.sh \
     && ./configure --disable-optimizations --enable-logging --enable-debug --disable-assertions --enable-mt --disable-params-check \
-       --without-go --without-java --disable-cma --without-cuda --without-gdrcopy --without-verbs --without-knem --without-rmdacm \
-       --without-rocm --without-xpmem --without-fuse3 --without-ugni --prefix=/usr CC=$(which gcc) CXX=$(which g++) \
+    --without-go --without-java --disable-cma --without-cuda --without-gdrcopy --without-verbs --without-knem --without-rmdacm \
+    --without-rocm --without-xpmem --without-fuse3 --without-ugni --prefix=/usr CC=$(which gcc) CXX=$(which g++) \
     && make -j \
     && sudo make install \
     && cd .. \
     && rm -rf ucx
 
-RUN git clone https://github.com/TauferLab/dyad.git \
+RUN git clone https://github.com/flux-framework/dyad.git \
     && cd dyad \
-    && git checkout ucx \
-    && cp -r docs/demos/ecp_feb_2023 .. \
-    && ./autogen.sh \
-    && ./configure --prefix=/usr CC=$(which gcc) CXX=$(which g++) --enable-dyad-debug \
+    && git checkout tutorial-riken-2024 \
+    && cp -r tests/integration/dlio_benchmark /home/jovyan \
+    && mkdir build \
+    && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .. \
     && make -j \
     && sudo make install \
-    && cd .. \
-    && rm -rf dyad
-
-RUN mv ecp_feb_2023 /opt/dyad_demo \
-    && cd /opt/dyad_demo \
-    && CC=$(which gcc) CXX=$(which g++) make all \
-    && cd ..
+    && cd ../pydyad \
+    && python3 -m pip install . \
+    && cd ../.. \
+    && rm -rf dyad \
+    && rm /home/jovyan/dlio_benchmark/*.sh \
+    && rm -r /home/jovyan/dlio_benchmark/perf_analysis \
+    && mv /home/jovyan/dlio_benchmark /home/jovyan/dlio_extensions
 
 # This adds the flux-tree command, which is provided in flux-sched source
 # but not installed alongside production flux-core
@@ -100,6 +101,10 @@ CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
 
 # This won't be available in K8s, but will be for a single container build
 COPY ./tutorial /home/jovyan/flux-tutorial-2024
+
+USER root
+RUN mv /home/jovyan/dlio_extensions /home/jovyan/flux-tutorial-2024
+USER ${NB_USER}
 
 # Previous command for non-kubernetes
 # CMD PATH=$HOME/.local/bin:$PATH \

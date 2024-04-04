@@ -337,3 +337,5 @@ webencodings==0.5.1
     #   tinycss2
 websocket-client==1.6.1
     # via jupyter-server
+# Used for the DYAD notebook
+dlio_benchmark @ git+https://github.com/argonne-lcf/dlio_benchmark.git
