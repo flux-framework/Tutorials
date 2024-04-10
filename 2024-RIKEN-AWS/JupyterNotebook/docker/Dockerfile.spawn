@@ -1,4 +1,4 @@
-FROM fluxrm/flux-sched:jammy
+FROM fluxrm/flux-sched:focal
 
 # Based off of https://github.com/jupyterhub/zero-to-jupyterhub-k8s/tree/main/images/singleuser-sample
 # Local usage
@@ -8,7 +8,8 @@ USER root
 
 ENV NB_USER=jovyan \
     NB_UID=1000 \
-    HOME=/home/jovyan
+    HOME=/home/jovyan \
+    VENV_DIR=/home/jovyan/.flux_tutorial_venv
 
 RUN adduser \
     --disabled-password \
@@ -19,22 +20,28 @@ RUN adduser \
     ${NB_USER}
 
 RUN apt-get update \
-    && apt-get upgrade -y \
+    # && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
+    gcc-10 \
+    g++-10 \
     ca-certificates \
     dnsutils \
     iputils-ping \
+    python3.9 \
+    python3.9-dev \
     python3-pip \
+    python3-venv \
+    openmpi-bin \
+    openmpi-common \
+    libopenmpi-dev \
+    liblz4-dev \
     tini \
     # requirement for nbgitpuller
     git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./requirements.txt ./requirements.txt
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    python -m pip install -r requirements.txt && \
-    python -m pip install ipython==7.34.0 && \
-    python -m IPython kernel install
+ENV CC=gcc-10 \
+    CXX=g++-10
 
 # This is code to install DYAD
 # This was added to the RADIUSS 2023 tutorials on AWS
@@ -50,20 +57,40 @@ RUN git clone https://github.com/openucx/ucx.git \
     && cd .. \
     && rm -rf ucx
 
+RUN python3 -m venv $VENV_DIR
+ENV VENV_SOURCE=". ${VENV_DIR}/bin/activate"
+
+COPY ./requirements.txt ./requirements.txt
+COPY ./requirements_venv.txt ./requirements_venv.txt
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    python -m pip install -r requirements.txt && \
+    python -m pip install ipython==7.34.0 && \
+    # python -m pip install ipykernel && \
+    # python -m ipykernel install --prefix=${VENV_DIR} --name 'dyad_venv' --display-name 'DYAD Venv' && \
+    python -m IPython kernel install
+
+RUN $VENV_SOURCE && \
+    pip install -r requirements_venv.txt
+
+RUN chmod 777 -R $VENV_DIR && \
+    mkdir -p $HOME/.local/share && \
+    chmod 777 -R $HOME/.local/share
+
 # This won't be available in K8s, but will be for a single container build
 COPY ./tutorial /home/jovyan/flux-tutorial-2024
 
-RUN git clone https://github.com/flux-framework/dyad.git \
+RUN $VENV_SOURCE \
+    && git clone https://github.com/flux-framework/dyad.git \
     && cd dyad \
     && git checkout tutorial-riken-2024 \
     && cp -r tests/integration/dlio_benchmark /home/jovyan \
     && mkdir build \
     && cd build \
-    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .. \
-    && make -j \
-    && sudo make install \
+    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDYAD_ENABLE_UCX_DATA=ON .. \
+    && sudo make install -j \
     && cd ../pydyad \
-    && python3 -m pip install . \
+    && python3 -m build --wheel . \
+    && pip install $(ls ./dist/*.whl | head -1) \
     && cd ../.. \
     && rm -rf dyad \
     && rm /home/jovyan/dlio_benchmark/*.sh \
@@ -84,10 +111,21 @@ RUN python3 -m pip install jupyter_app_launcher && \
 COPY ./docker/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/config.yaml
 ENV JUPYTER_APP_LAUNCHER_PATH /usr/local/share/jupyter/lab/jupyter_app_launcher
 
+# Give jovyan user permissions to tutorial materials
+RUN chmod -R 777 ~/flux-tutorial-2024
+
+RUN apt-get update && \
+    apt-get install -y gdb gdbserver tmux
+
 # No permission errors here
 USER ${NB_USER}
 WORKDIR $HOME
 COPY ./docker/flux-icon.png $HOME/flux-icon.png
+
+RUN ${VENV_SOURCE} && \
+    pip install --upgrade --force-reinstall cffi && \
+    python3 -m ipykernel install --user --name 'dyad_venv' --display-name 'DYAD Venv' && \
+    jupyter kernelspec list
 
 # note that previous examples are added via git volume in config.yaml
 ENV SHELL=/usr/bin/bash
