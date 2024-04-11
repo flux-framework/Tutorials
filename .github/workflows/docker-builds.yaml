@@ -21,6 +21,18 @@ jobs:
     steps:
     - name: Clone the code
       uses: actions/checkout@v3
+        
+    # Note: only works on Ubuntu runner
+    - name: Remove unneeded stuff in runner to make space for Docker image
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true # Removes stuff inspired by https://github.com/apache/flink/blob/02d30ace69dc18555a5085eccf70ee884e73a16e/tools/azure-pipelines/free_disk_space.sh
+        docker-images: false # Keep this in case we need any provided images
+        tool-cache: false # Keep tool-cache so we still have the pre-installed versions of e.g., Python
+        swamp-storage: true
 
     - name: GHCR Login
       if: (github.event_name != 'pull_request')
