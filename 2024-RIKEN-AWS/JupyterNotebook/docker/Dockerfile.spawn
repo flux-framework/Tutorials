@@ -73,7 +73,6 @@ RUN git clone https://github.com/openucx/ucx.git \
 RUN git clone https://github.com/flux-framework/dyad.git \
     && cd dyad \
     && git checkout tutorial-riken-2024 \
-    && cp -r tests/integration/dlio_benchmark /home/jovyan \
     && mkdir build \
     && cd build \
     && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDYAD_ENABLE_UCX_DATA=ON .. \
@@ -84,9 +83,7 @@ RUN git clone https://github.com/flux-framework/dyad.git \
     && cd ../.. \
     && rm -rf dyad \
     && rm /home/jovyan/dlio_benchmark/*.sh \
-    && rm -r /home/jovyan/dlio_benchmark/perf_analysis \
-    && mv /home/jovyan/dlio_benchmark /home/jovyan/dlio_extensions \
-    && mv /home/jovyan/dlio_extensions /home/jovyan/flux-tutorial-2024
+    && rm -r /home/jovyan/dlio_benchmark/perf_analysis
 
 # ENV DLIO_PROFILER_ENABLE=0
 # 
