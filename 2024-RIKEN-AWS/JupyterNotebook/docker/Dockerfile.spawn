@@ -36,8 +36,8 @@ RUN apt-get update \
     liblz4-dev \
     tini \
     # requirement for nbgitpuller
-    git
-#&& rm -rf /var/lib/apt/lists/*
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements_venv.txt ./requirements_venv.txt
 RUN python3 -m pip install -r requirements_venv.txt
