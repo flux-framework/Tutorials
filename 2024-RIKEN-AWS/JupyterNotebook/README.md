@@ -21,9 +21,9 @@ For AWS Tutorial Day users:
 Let's build a set of images - one spawner and one hub. 
 
 ```bash
-docker build -t ghcr.io/flux-framework/flux-jupyter-hub:2023 -f docker/Dockerfile.hub .
-docker build -t ghcr.io/flux-framework/flux-jupyter-spawn:2023 -f docker/Dockerfile.spawn .
-docker build -t ghcr.io/flux-framework/flux-jupyter-init:2023 -f docker/Dockerfile.init .
+docker build -t ghcr.io/flux-framework/flux-jupyter-hub:riken-2024 -f docker/Dockerfile.hub .
+docker build -t ghcr.io/flux-framework/flux-jupyter-spawn:riken-2024 -f docker/Dockerfile.spawn .
+docker build -t ghcr.io/flux-framework/flux-jupyter-init:riken-2024 -f docker/Dockerfile.init .
 ```
 
 Note that these are available under the flux-framework organization GitHub packages, so you shouldn't need
@@ -43,9 +43,6 @@ docker network create jupyterhub
 
 # Here is how to run an entirely contained tutorial (the notebook in the container)
 docker run --rm -it --entrypoint /start.sh -v /var/run/docker.sock:/var/run/docker.sock --net jupyterhub --name jupyterhub -p 8888:8888 flux-tutorial
-
-# Here is how to bind the tutorial files locally to make enduring changes!
-docker run --rm -it --entrypoint /start.sh -v /var/run/docker.sock:/var/run/docker.sock -v ./tutorial:/home/jovyan/flux-radiuss-tutorial-2023 --net jupyterhub --name jupyterhub -p 8888:8888 flux-tutorial
 ```
 
 If you want to develop the ipynb files, you can bind the tutorials directory:

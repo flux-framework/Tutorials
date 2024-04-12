@@ -17,7 +17,7 @@ hub:
   # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
   image: 
     name: ghcr.io/flux-framework/flux-jupyter-hub
-    tag: "2023"
+    tag: "riken-2024"
     pullPolicy: Always
 
 # https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
@@ -40,13 +40,13 @@ singleuser:
     limit: '4G'
   cmd: /entrypoint.sh
 
-  initContainers:
-    - name: init-myservice
-      image: alpine/git
-      command: ["git", "clone", "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-tutorial"]
-      volumeMounts:
-        - name: flux-tutorial
-          mountPath: /home/jovyan
+#  initContainers:
+#    - name: init-myservice
+#      image: alpine/git
+#      command: ["git", "clone", "https://github.com/rse-ops/flux-radiuss-tutorial-2023", "/home/jovyan/flux-tutorial"]
+#      volumeMounts:
+#        - name: flux-tutorial
+#          mountPath: /home/jovyan
 
   # This is how we get the tutorial files added
   storage:
