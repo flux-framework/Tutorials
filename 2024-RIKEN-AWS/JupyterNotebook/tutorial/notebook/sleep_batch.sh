@@ -1,4 +1,7 @@
 #!/bin/bash
+#FLUX: --nodes=2
+#FLUX: --nslots=2
+#FLUX: --cores-per-slot=1
 
 echo "Starting my batch job"
 echo "Print the resources allocated to this batch job"

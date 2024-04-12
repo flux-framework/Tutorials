@@ -21,6 +21,18 @@ jobs:
     steps:
     - name: Clone the code
       uses: actions/checkout@v3
+        
+    # Note: only works on Ubuntu runner
+    - name: Remove unneeded stuff in runner to make space for Docker image
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: false 
+        swap-storage: true
 
     - name: GHCR Login
       if: (github.event_name != 'pull_request')
