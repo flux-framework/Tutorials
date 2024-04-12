@@ -1,0 +1,110 @@
+# https://www.arhea.net/posts/2020-06-18-jupyterhub-amazon-eks
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: jupyterhub
+  region: us-east-2
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: cluster-autoscaler
+        namespace: kube-system
+        labels:
+            aws-usage: "cluster-ops"
+            app.kubernetes.io/name: cluster-autoscaler
+
+      # https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "autoscaling:DescribeAutoScalingGroups"
+              - "autoscaling:DescribeAutoScalingInstances"
+              - "autoscaling:DescribeLaunchConfigurations"
+              - "autoscaling:DescribeTags"
+              - "autoscaling:SetDesiredCapacity"
+              - "autoscaling:TerminateInstanceInAutoScalingGroup"
+              - "ec2:DescribeLaunchTemplateVersions"
+            Resource: '*'
+
+    - metadata:
+        name: ebs-csi-controller-sa
+        namespace: kube-system
+        labels:
+            aws-usage: "cluster-ops"
+            app.kubernetes.io/name: aws-ebs-csi-driver
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "ec2:AttachVolume"
+              - "ec2:CreateSnapshot"
+              - "ec2:CreateTags"
+              - "ec2:CreateVolume"
+              - "ec2:DeleteSnapshot"
+              - "ec2:DeleteTags"
+              - "ec2:DeleteVolume"
+              - "ec2:DescribeInstances"
+              - "ec2:DescribeSnapshots"
+              - "ec2:DescribeTags"
+              - "ec2:DescribeVolumes"
+              - "ec2:DetachVolume"
+            Resource: '*'
+
+availabilityZones: ["us-east-2a", "us-east-2b", "us-east-2c"]
+managedNodeGroups:
+  - name: ng-us-east-2a
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+    instanceType: m5.large
+    volumeSize: 30
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 3
+    privateNetworking: true
+    availabilityZones:
+      - us-east-2a
+    # I didn't set this, but I know it's been an issue
+    # propagateASGTags: true
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/jupyterhub: "owned"
+
+  - name: ng-us-east-2b
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+    instanceType: m5.large
+    volumeSize: 30
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 3 
+    privateNetworking: true
+    availabilityZones:
+      - us-east-2b
+    # propagateASGTags: true
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/jupyterhub: "owned"
+
+  - name: ng-us-east-2c
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+    instanceType: m5.large
+    volumeSize: 30
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 3
+    privateNetworking: true
+    availabilityZones:
+      - us-east-2c
+    # propagateASGTags: true
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/jupyterhub: "owned"
