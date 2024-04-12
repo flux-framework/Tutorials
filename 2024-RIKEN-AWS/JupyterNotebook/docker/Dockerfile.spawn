@@ -9,7 +9,6 @@ USER root
 ENV NB_USER=jovyan \
     NB_UID=1000 \
     HOME=/home/jovyan
-    # VENV_DIR=/home/jovyan/.flux_tutorial_venv
 
 RUN adduser \
     --disabled-password \
@@ -43,11 +42,6 @@ RUN apt-get update \
 COPY ./requirements_venv.txt ./requirements_venv.txt
 RUN python3 -m pip install -r requirements_venv.txt
 
-# ENV DLIO_PROFILER_ENABLE=0
-# RUN dlio_benchmark workload=unet3d_a100 ++workload.dataset.data_folder=/root/data ++workload.workflow.generate_data=True ++workload.workflow.train=False ++workload.dataset.record_length=4096 ++workload.dataset.record_length_stdev=0 ++workload.dataset.record_length_resize=0 ++workload.reader.batch_size=1 ++workload.dataset.num_files_train=16 ++workload.reader.read_threads=1
-# 
-# RUN dlio_benchmark workload=unet3d_a100 ++workload.dataset.data_folder=/root/data ++workload.workflow.generate_data=False ++workload.workflow.train=True ++workload.dataset.record_length=4096 ++workload.dataset.record_length_stdev=0 ++workload.dataset.record_length_resize=0 ++workload.reader.batch_size=1 ++workload.dataset.num_files_train=16 ++workload.reader.read_threads=1
-
 COPY ./requirements.txt ./requirements.txt
 RUN python3 -m pip install -r requirements.txt && \
     python3 -m pip install ipython==7.34.0  && \
@@ -69,7 +63,6 @@ RUN git clone https://github.com/openucx/ucx.git \
     && cd .. \
     && rm -rf ucx
 
-# RUN $VENV_SOURCE \
 RUN git clone https://github.com/flux-framework/dyad.git \
     && cd dyad \
     && git checkout tutorial-riken-2024 \
@@ -82,10 +75,6 @@ RUN git clone https://github.com/flux-framework/dyad.git \
     && pip install $(ls ./dist/*.whl | head -1) \
     && cd ../.. \
     && rm -rf dyad
-
-# ENV DLIO_PROFILER_ENABLE=0
-# 
-# RUN dlio_benchmark workload=unet3d_a100 ++workload.dataset.data_folder=/root/data ++workload.workflow.generate_data=False ++workload.workflow.train=True ++workload.dataset.record_length=4096 ++workload.dataset.record_length_stdev=0 ++workload.dataset.record_length_resize=0 ++workload.reader.batch_size=1 ++workload.dataset.num_files_train=16 ++workload.reader.read_threads=1
 
 
 # This adds the flux-tree command, which is provided in flux-sched source
@@ -107,11 +96,6 @@ RUN chmod -R 777 ~/flux-tutorial-2024
 WORKDIR $HOME
 COPY ./docker/flux-icon.png $HOME/flux-icon.png
 
-# RUN ${VENV_SOURCE} && \
-#     pip install --upgrade --force-reinstall cffi && \
-#     python3 -m ipykernel install --user --name 'dyad_venv' --display-name 'DYAD Venv' && \
-#     jupyter kernelspec list
-
 # note that previous examples are added via git volume in config.yaml
 ENV SHELL=/usr/bin/bash
 ENV FLUX_URI_RESOLVE_LOCAL=t
@@ -129,9 +113,5 @@ RUN mkdir -p $HOME/.local/share && \
     chmod 777 $HOME/.local/share
 
 USER ${NB_USER}
-
-# RUN dlio_benchmark workload=unet3d_a100 ++workload.dataset.data_folder=${HOME}/data ++workload.workflow.generate_data=True ++workload.workflow.train=False ++workload.dataset.record_length=4096 ++workload.dataset.record_length_stdev=0 ++workload.dataset.record_length_resize=0 ++workload.reader.batch_size=1 ++workload.dataset.num_files_train=16 ++workload.reader.read_threads=1
-# 
-# RUN dlio_benchmark workload=unet3d_a100 ++workload.dataset.data_folder=${HOME}/data ++workload.workflow.generate_data=False ++workload.workflow.train=True ++workload.dataset.record_length=4096 ++workload.dataset.record_length_stdev=0 ++workload.dataset.record_length_resize=0 ++workload.reader.batch_size=1 ++workload.dataset.num_files_train=16 ++workload.reader.read_threads=1
 
 CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
