@@ -61,9 +61,10 @@ singleuser:
     - name: init-myservice
       image: ghcr.io/flux-framework/flux-jupyter-init:riken-2024
       command: ["/entrypoint.sh"]
-      volumeMounts:
-        - name: flux-tutorial
-          mountPath: /home/jovyan
+# volumeMounts can clobber the container /home
+#      volumeMounts:
+#        - name: flux-tutorial
+#          mountPath: /home/jovyan
 
   # This is how we get the tutorial files added
   storage:
@@ -71,9 +72,10 @@ singleuser:
 
     # gitRepo volume is deprecated so we need another way
     # https://kubernetes.io/docs/concepts/storage/volumes/#gitrepo
-    extraVolumes:
-      - name: flux-tutorial
-        emptyDir: {}
-    extraVolumeMounts:
-      - name: flux-tutorial
-        mountPath: /home/jovyan
+# volumeMounts can clobber the container /home
+#    extraVolumes:
+#      - name: flux-tutorial
+#        emptyDir: {}
+#    extraVolumeMounts:
+#      - name: flux-tutorial
+#        mountPath: /home/jovyan

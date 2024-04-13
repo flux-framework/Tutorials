@@ -74,7 +74,7 @@ gcloud container clusters create flux-jupyter --project $GOOGLE_PROJECT \
 #### AWS
 
 Here is how to create an equivalent cluster on AWS (EKS). We will be using [eksctl](https://eksctl.io/introduction/), which
-you should install.
+requires [aws-iam-authenticator](https://github.com/kubernetes-sigs/aws-iam-authenticator). You will need both binaries to create and manage EKS clusters.
 
 ```bash
 # Create an EKS cluster with autoscaling with default storage
@@ -979,6 +979,8 @@ kubectl get service proxy-public --output jsonpath='{.status.loadBalancer.ingres
 ```
 
 Note that for Google, it looks like an ip address. For aws you get a string monster!
+
+If you want to use a CNAME to map an address to this target with HTTPS enabled, you will need to enter the ELB DNS name in the target field for the provider (e.g., Cloudflare). Letsencrypt will fail the first time you attempt to create the cluster with SSL specified because there will be no ELB to map to the CNAME. You will need to create the cluster with `helm`, find the proxy-public service, enter it into the CNAME record and save it, and then delete the "autohttps" pods. They will be recreated and should generate the SSL certs at that point.
 
 ```console
 a054af2758c1549f780a433e5515a9d4-1012389935.us-east-2.elb.amazonaws.com
