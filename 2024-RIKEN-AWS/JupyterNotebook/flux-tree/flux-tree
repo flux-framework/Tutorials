@@ -212,7 +212,7 @@ jsonify() {
 
     if [[ "${avail}" = "yes" ]]
     then
-        avg=$(flux ion-resource stat | grep "Avg" | awk '{print $4}')
+        avg=$(flux ion-resource stats | grep "Avg" | awk '{print $4}')
         el_match=$(awk "BEGIN {print ${avg}*${njobs}*1000000.0}")
     fi
 
