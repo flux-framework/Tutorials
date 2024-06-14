@@ -1,0 +1,13 @@
+FROM alpine/git
+
+ENV NB_USER=jovyan \
+    NB_UID=1000 \
+    HOME=/home/jovyan
+
+RUN adduser \
+        -D \
+        -g "Default user" \
+        -u ${NB_UID} \
+        -h ${HOME} \
+        ${NB_USER}
+COPY ./docker/init-entrypoint.sh /entrypoint.sh
