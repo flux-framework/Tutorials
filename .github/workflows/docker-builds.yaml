@@ -10,10 +10,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-# Tutorial is over - these builds are disabled
+# Tutorials are over - these builds are disabled
 #        test: [["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:2023"],
 #               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:2023"],
 #               ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:2023"]]
+#               ["2024-RIKEN-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:riken-2024"],
+#               ["2024-RIKEN-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:riken-2024"],
+#               ["2024-RIKEN-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:riken-2024"]]
         test: [["2024-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:radiuss-2024"],
                ["2024-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:radiuss-2024"],
                ["2024-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:radiuss-2024"]]
