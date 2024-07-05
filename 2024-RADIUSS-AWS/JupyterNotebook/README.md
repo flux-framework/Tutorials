@@ -3,8 +3,8 @@
 This set of tutorials provides:
 
  - [Building Base Images](#build-images)
- - [Deploy A Cluster to AWS or Google Cloud Using](#deploy-to-kubernetes) using Google Cloud or AWS
  - [Local Development or Usage](#local-usage)
+ - [Deploy A Cluster to AWS or Google Cloud Using](#deploy-to-kubernetes) using Google Cloud or AWS
 
 Pre-requisites:
 
@@ -19,6 +19,7 @@ For AWS Tutorial Day users:
 ## Build Images
 
 Let's build a set of images - one spawner and one hub, and an init. You can customize the tag to your liking.
+Remember that if you just want to test locally, you can jump to the [local usage](#local-usage) section.
 
 ```bash
 docker build -t ghcr.io/flux-framework/flux-jupyter-hub:radiuss-2024 -f docker/Dockerfile.hub .
@@ -30,12 +31,11 @@ Note that these are available under the flux-framework organization GitHub packa
 to build them unless you are developing or changing them. 
 
 If you do build (and use a different name) be sure to push your images to a public registry (or load them locally to your development cluster).
-Remember that if you just want to test locally, you can jump to the [local usage](#local-usage) section.
 
-## Local Deploy
 
-While the tutorial here is intended for deployment on AWS or Google Cloud, you can also give it a try on your local machine with a single container! You will need to [install Docker](https://docs.docker.com/engine/install/).
-When you have Docker available, you can build and run the tutorial with:
+## Local Usage
+
+While the tutorial here is intended for deployment on AWS or Google Cloud, you can also give it a try on your local machine with a single container! You will need to [install Docker](https://docs.docker.com/engine/install/). When you have Docker available, you can build and run the tutorial with:
 
 ```bash
 docker build -t flux-tutorial -f docker/Dockerfile.spawn .
