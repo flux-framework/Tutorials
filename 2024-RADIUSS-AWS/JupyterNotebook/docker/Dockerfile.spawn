@@ -79,6 +79,13 @@ RUN git clone https://github.com/flux-framework/dyad.git \
 COPY ./flux-tree/* /usr/libexec/flux/cmd/
 RUN chmod +x /usr/libexec/flux/cmd/flux-tree*
 
+# Flux accounting
+RUN git clone https://github.com/flux-framework/flux-accounting && \
+    cd flux-accounting && \
+    ./autogen.sh && \
+    ./configure --prefix=/usr && \
+    make && make install
+
 RUN apt-get update && apt-get install -y nodejs && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-x64.tar.xz && \
@@ -119,6 +126,13 @@ COPY ./docker/start.sh /start.sh
 RUN mkdir -p $HOME/.local/share && \
     chmod 777 $HOME/.local/share
 
+# Quick setup of flux-accounting (not working)
+# RUN flux start /bin/bash -c "nohup flux account create-db && flux account-service & flux account add-bank root 1" && \
+#    flux start flux account add-bank --parent-bank=root default 1 && \
+#    flux start flux account add-user --username=jovyan --bank=default && \
+#    flux start flux jobtap load mf_priority.so && \
+#    flux start flux account-update-db
+    
 USER ${NB_USER}
 
 CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
