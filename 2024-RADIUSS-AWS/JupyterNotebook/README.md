@@ -31,40 +31,6 @@ Note that these are available under the flux-framework organization GitHub packa
 to build them unless you are developing or changing them. 
 
 If you do build (and use a different name) be sure to push your images to a public registry (or load them locally to your development cluster).
-
-### TODO
-
-After we add the flux-accounting:
-- after flux resource list, to see queues available (flux queue list)
-
-- more carbon copy examples
-- move flux batch aboe hierarchy
-  - transition into "what if I flux batch in my flux batch" (in my interactive allocation)
-  - yooo dawg
-  - check out riken tutorial for example
-  - drop the tree thing
-  - drop the throughput thing
-- better way to render script in the notebook
-- "construct a job submission object, called a jobspec"
-- Python, make handle, create job description (jobspec), submit and info (monitor)
-- collapse json dump
-- add watch / track events for some job
- - reproduce cheese / pancakes example here
- - how to list jobs
- - hot to get output for a job
-- figure out way to collapse the last section
-- typo at top of chapter 2
-- do a section for flux exec? (show doing something across our "nodes"
-- move flux archive into main tutorial
-- Plumbing to Porcelain - "the toilet vs. the pipes" 💩️🚽️
-- squash Deep Dive into section above it
-- set up flux-accounting and see if it works
-  - how to specify a bank for a job 
-  - list banks (all) - flux account view-bank --tree
-  - specify banks - flux account view user $USER
-
-- Chapter 2: Flux Plumbing 💩️🚽️
-  - add flux job submit, show --dry-run
   
 ## Local Usage
 
@@ -1048,3 +1014,11 @@ $ eksctl delete cluster --config-file aws/eksctl-config.yaml --wait
 
 In practice, you'll need to start deleting with `eksctl` and then you will see the pod eviction warning
 (because they were re-created) and you'll need to run the command again, and then it will clean up.
+
+### Tutorial "would be nice" additions
+
+- Flux accounting
+ - after flux resource list, to see queues available (flux queue list)
+ - how to specify a bank for a job 
+ - list banks (all) - flux account view-bank --tree
+ - specify banks - flux account view user $USER

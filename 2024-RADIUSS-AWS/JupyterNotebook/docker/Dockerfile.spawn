@@ -126,7 +126,7 @@ COPY ./docker/start.sh /start.sh
 RUN mkdir -p $HOME/.local/share && \
     chmod 777 $HOME/.local/share
 
-# Quick setup of flux-accounting (not working)
+# Quick setup of flux-accounting (not working due to needing system service)
 # RUN flux start /bin/bash -c "nohup flux account create-db && flux account-service & flux account add-bank root 1" && \
 #    flux start flux account add-bank --parent-bank=root default 1 && \
 #    flux start flux account add-user --username=jovyan --bank=default && \
