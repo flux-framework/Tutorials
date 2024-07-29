@@ -138,12 +138,10 @@ class DyadTorchDataLoader(BaseDataLoader):
             prefetch_factor = math.ceil(self._args.prefetch_size / self._args.read_threads)
         else:
             prefetch_factor = self._args.prefetch_size
-        if prefetch_factor > 0:
-            if self._args.my_rank == 0:
-        else:
+        if prefetch_factor <= 0:
             prefetch_factor = 2
             if self._args.my_rank == 0:
-        logging.debug(f"{utcnow()} Setup dataloader with {self._args.read_threads} workers {torch.__version__}")
+                logging.debug(f"{utcnow()} Setup dataloader with {self._args.read_threads} workers {torch.__version__}")
         if self._args.read_threads==0:
             kwargs={}
         else:
