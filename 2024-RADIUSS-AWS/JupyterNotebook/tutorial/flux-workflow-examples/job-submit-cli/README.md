@@ -1,81 +1,61 @@
-## Job Submit CLI
+# Job Submit CLI
 
 To run the following examples, download the files and change your working directory:
 
-```
-$ git clone https://github.com/flux-framework/flux-workflow-examples.git
+```console
 $ cd flux-workflow-examples/job-submit-cli
 ```
 
-### Part(a) - Partitioning Schedule
+## Example
 
-#### Description: Launch a flux instance and schedule/launch compute and io-forwarding jobs on separate nodes
+### Launch a flux instance and submit compute and io-forwarding jobs
 
-1. `salloc -N3 -ppdebug`
+If you need an allocation:
 
-2. `srun --pty --mpi=none -N3 flux start -o,-S,log-filename=out`
-
-3. `flux mini submit --nodes=2 --ntasks=4 --cores-per-task=2 ./compute.lua 120`
-
-4. `flux mini submit --nodes=1 --ntasks=1 --cores-per-task=2 ./io-forwarding.lua 120`
-
-5. List running jobs:
-
-`flux jobs`
-
-```  
-JOBID     USER     NAME       ST NTASKS NNODES  RUNTIME RANKS
-ƒ3ETxsR9H moussa1  io-forward  R      1      1   2.858s 2
-ƒ38rBqEWT moussa1  compute.lu  R      4      2    15.6s [0-1]
+```bash
+salloc -N3 -ppdebug
+srun --pty --mpi=none -N3 flux start -o,-S,log-filename=out
 ```
 
-6. Get information about job:
+To submit
 
-`flux job info ƒ3ETxsR9H R`
+```bash
+# if you have more than one node...
+flux submit --nodes=2 --ntasks=4 --cores-per-task=2 ./compute.lua 120
 
-```
-{"version":1,"execution":{"R_lite":[{"rank":"2","children":{"core":"0-1"}}]}}
-```
-
-`flux job info ƒ38rBqEWT R`
-
-```
-{"version":1,"execution":{"R_lite":[{"rank":"0-1","children":{"core":"0-3"}}]}}
+# and if not!
+flux submit --nodes=1 --ntasks=1 --cores-per-task=2 ./io-forwarding.lua 120
 ```
 
-### Part(b) - Overlapping Schedule
+Attach to watch output:
 
-#### Description: Launch a flux instance and schedule/launch both compute and io-forwarding jobs across all nodes
-
-1. `salloc -N3 -ppdebug`
-
-2. `srun --pty --mpi=none -N3 flux start -o,-S,log-filename=out`
-
-3. `flux mini submit --nodes=3 --ntasks=6 --cores-per-task=2 ./compute.lua 120`
-
-4. `flux mini submit --nodes=3 --ntasks=3 --cores-per-task=1 ./io-forwarding.lua 120`
-
-5. List jobs in KVS:
-
-`flux jobs`
-
-```
-JOBID     USER     NAME       ST NTASKS NNODES  RUNTIME RANKS
-ƒ3ghmgCpw moussa1  io-forward  R      3      3   16.91s [0-2]
-ƒ3dSybfQ3 moussa1  compute.lu  R      6      3    24.3s [0-2]
-
+```bash
+# Control +C then Control+Z to detach
+flux job attach $(flux job last)
 ```
 
-6. Get information about job:
+List running jobs:
 
-`flux job info ƒ3ghmgCpw R`
-
+```bash
+flux jobs
 ```
-{"version":1,"execution":{"R_lite":[{"rank":"0-2","children":{"core":"4"}}]}}
+```console  
+JOBID     USER     NAME       ST NTASKS NNODES  RUNTIME
+ƒ3ETxsR9H fluxuser  io-forward  R      1      1   2.858s
+ƒ38rBqEWT fluxuser  compute.lu  R      4      2    15.6s
 ```
 
-`flux job info ƒ3dSybfQ3 R`
+Get information about job:
 
+```bash
+flux job info $(flux job last) R
+flux job info $(flux job last) jobspec
+flux job info $(flux job last) eventlog
+flux job info $(flux job last) guest.output
+
+# Example with flux job id
+flux job info ƒ3ETxsR9H R
 ```
-{"version":1,"execution":{"R_lite":[{"rank":"0-2","children":{"core":"0-3"}}]}}
+```console
+{"version": 1, "execution": {"R_lite": [{"rank": "0", "children": {"core": "5-7"}}], "nodelist": ["674f16a501e5"], "starttime": 1723225494, "expiration": 4876808372}}
 ```

@@ -1,25 +1,24 @@
-## Job Cancellation
+# Job Cancellation
 
-### Description: Cancel a running job
+## Description: Cancel a running job
 
-#### Setup
+### Setup
 
 If you haven't already, download the files and change your working directory:
 
-```
-$ git clone https://github.com/flux-framework/flux-workflow-examples.git
+```bash
 $ cd flux-workflow-examples/job-cancel
 ```
 
-#### Execution
+### Execution
 
-1. Launch the submitter script:
+Launch the submitter script:
 
-`./submitter.py $(flux resource list -no {ncores} --state=up)`
-
-_note: for older versions of Flux, you might need to instead run: `./submitter.py $(flux hwloc info | awk '{print $3}')`_
-
+```bash
+python3 ./submitter.py $(flux resource list -no {ncores} --state=up)
 ```
+
+```console
 Submitted 1st job: 2241905819648
 Submitted 2nd job: 2258951471104
 

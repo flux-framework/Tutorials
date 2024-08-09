@@ -1,28 +1,46 @@
-## A Data Conduit Strategy
+# A Data Conduit Strategy
 
-### Description: Use a data stream to send packets through
+**Note that this module script does not compile and needs an update**
 
-#### Setup
+
+## Description: Use a data stream to send packets through
+
+### Setup
 
 If you haven't already, download the files and change your working directory:
 
-```
-$ git clone https://github.com/flux-framework/flux-workflow-examples.git
+```bash
 $ cd flux-workflow-examples/data-conduit
 ```
 
-#### Execution
+### Execution
 
-1. Allocate three nodes from a resource manager:
+If you are using Slurm, allocate three nodes from a resource manager:
 
-`salloc -N3 -ppdebug`
+```bash
+salloc -N3 -ppdebug
+```
 
-2. Point to `flux-core`'s `pkgconfig` directory:
+Point to `flux-core`'s `pkgconfig` directory:
 
 | Shell     | Command                                                      |
 | -----     | ----------                                                   |
 | tcsh      | `setenv PKG_CONFIG_PATH <FLUX_INSTALL_PATH>/lib/pkgconfig`   |
 | bash/zsh  | `export PKG_CONFIG_PATH='<FLUX_INSTALL_PATH>/lib/pkgconfig'` |
+
+This might look like this in the container:
+
+```bash
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+```
+
+Then build the module (if you don't have permission, copy to /tmp)
+
+```bash
+cp -R ./data-conduit /tmp/data-conduit
+cd /tmp/data-conduit
+make
+```
 
 3. `make`
 

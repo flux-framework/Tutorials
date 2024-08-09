@@ -45,7 +45,7 @@ static struct conduit_ctx *getctx (flux_t *h)
     return ctx;
 }
 
-/* Foward the received JSON string to the datastore.py */
+/* Forward the received JSON string to the datastore.py */
 static int conduit_send (flux_t *h, const char *json_str)
 {
     int rc = -1;
