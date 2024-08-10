@@ -1,0 +1,80 @@
+# https://www.arhea.net/posts/2020-06-18-jupyterhub-amazon-eks
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: jupyterhub
+  region: us-east-1
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: ebs-csi-controller-sa
+        namespace: kube-system
+        labels:
+            aws-usage: "cluster-ops"
+            app.kubernetes.io/name: aws-ebs-csi-driver
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "ec2:AttachVolume"
+              - "ec2:CreateSnapshot"
+              - "ec2:CreateTags"
+              - "ec2:CreateVolume"
+              - "ec2:DeleteSnapshot"
+              - "ec2:DeleteTags"
+              - "ec2:DeleteVolume"
+              - "ec2:DescribeInstances"
+              - "ec2:DescribeSnapshots"
+              - "ec2:DescribeTags"
+              - "ec2:DescribeVolumes"
+              - "ec2:DetachVolume"
+            Resource: '*'
+
+availabilityZones:
+  - us-east-1a
+  - us-east-1b
+  - us-east-1c
+
+managedNodeGroups:
+  - name: ng-us-east-1a
+    instanceType: m6a.8xlarge
+    volumeSize: 256
+    volumeType: gp3
+    volumeIOPS: 16000
+    volumeThroughput: 512
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 6
+    privateNetworking: true
+    availabilityZones:
+      - us-east-1a
+
+  - name: ng-us-east-1b
+    instanceType: m6a.8xlarge
+    volumeSize: 256
+    volumeType: gp3
+    volumeIOPS: 16000
+    volumeThroughput: 512
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 6
+    privateNetworking: true
+    availabilityZones:
+      - us-east-1b
+
+  - name: ng-us-east-1c
+    instanceType: m6a.8xlarge
+    volumeSize: 256
+    volumeType: gp3
+    volumeIOPS: 16000
+    volumeThroughput: 512
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 6
+    privateNetworking: true
+    availabilityZones:
+      - us-east-1c
+

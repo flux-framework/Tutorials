@@ -1,0 +1,75 @@
+- title: Flux Tutorial Notebook
+  description: This is the main Flux Framework Tutorial
+  type: jupyterlab-commands
+  icon: ./flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: 01_flux_tutorial.ipynb
+        icon: ./flux-icon.png
+  catalog: Notebook
+
+- title: Dyad Notebook Tutorial
+  description: This is a tutorial for using Dyad
+  type: jupyterlab-commands
+  source:
+    - label: Dyad Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: supplementary/dyad/dyad_dlio.ipynb
+        icon: ./flux-icon.png
+  catalog: Console
+
+- title: Flux Framework Portal
+  description: Flux Framework portal for projects, releases, and publication.
+  source: https://flux-framework.org/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Documentation
+  source: https://flux-framework.readthedocs.io/en/latest/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Cheat Sheet
+  source: https://flux-framework.org/cheat-sheet/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Glossary of Terms
+  source: https://flux-framework.readthedocs.io/en/latest/glossary.html
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Comics
+  source: https://flux-framework.readthedocs.io/en/latest/comics/fluxonomicon.html
+  description: come and meet FluxBird - the pink bird who knows things!
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Learning Guide
+  source: https://flux-framework.readthedocs.io/en/latest/guides/learning_guide.html
+  description: learn about what Flux does, how it works, and real research applications
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Getting Started with Flux and Go
+  source: https://converged-computing.github.io/flux-go
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Getting Started with Flux in C
+  source: https://converged-computing.github.io/flux-c-examples/
+  description: ...looking for contributors!
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
