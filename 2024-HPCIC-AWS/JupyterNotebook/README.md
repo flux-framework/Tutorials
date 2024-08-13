@@ -22,9 +22,9 @@ Let's build a set of images - one spawner and one hub, and an init. You can cust
 Remember that if you just want to test locally, you can jump to the [local usage](#local-usage) section.
 
 ```bash
-docker build -t ghcr.io/flux-framework/flux-jupyter-hub:radiuss-2024 -f docker/Dockerfile.hub .
-docker build -t ghcr.io/flux-framework/flux-jupyter-spawn:radiuss-2024 -f docker/Dockerfile.spawn .
-docker build -t ghcr.io/flux-framework/flux-jupyter-init:radiuss-2024 -f docker/Dockerfile.init .
+docker build -t ghcr.io/flux-framework/flux-jupyter-hub:hpcic-2024 -f docker/Dockerfile.hub .
+docker build -t ghcr.io/flux-framework/flux-jupyter-spawn:hpcic-2024 -f docker/Dockerfile.spawn .
+docker build -t ghcr.io/flux-framework/flux-jupyter-init:hpcic-2024 -f docker/Dockerfile.init .
 ```
 
 Note that these are available under the flux-framework organization GitHub packages, so you shouldn't need
@@ -79,8 +79,8 @@ you should install.
 # Create an EKS cluster with autoscaling with default storage
 eksctl create cluster --config-file aws/eksctl-config.yaml
 
-# Create an EKS cluster with io1 node storage but no autoscaling, used for the RADIUSS 2023 tutorial
-eksctl create cluster --config-file aws/eksctl-radiuss-tutorial-2023.yaml
+# Create an EKS cluster with io1 node storage but no autoscaling, used for the HPCIC 2024 tutorial
+eksctl create cluster --config-file aws/eksctl-hpcic-tutorial-2023.yaml
 ```
 
 You can find vanilla (manual) instructions [here](https://z2jh.jupyter.org/en/stable/kubernetes/amazon/step-zero-aws-eks.html) if you
