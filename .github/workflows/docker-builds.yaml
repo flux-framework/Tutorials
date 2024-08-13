@@ -10,9 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: [["2024-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:radiuss-2024"],
-               ["2024-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:radiuss-2024"],
-               ["2024-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:radiuss-2024"]]
+        test: [["2024-HPCIC-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:hpcic-2024"],
+               ["2024-HPCIC-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:hpcic-2024"],
+               ["2024-HPCIC-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:hpcic-2024"]]
 
 # Tutorials are over - these builds are disabled
 # ["2023-RADIUSS-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:2023"],
