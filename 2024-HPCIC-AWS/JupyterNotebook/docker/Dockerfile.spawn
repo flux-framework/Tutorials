@@ -91,7 +91,7 @@ RUN apt-get update && apt-get install -y nodejs && apt-get clean && rm -rf /var/
 RUN wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-x64.tar.xz && \
     apt-get update && apt-get install -y xz-utils && rm -rf /var/lib/apt/lists/* && \
     xz -d -v node-v20.15.0-linux-x64.tar.xz && \
-    tar -C /usr/local --strip-components=1 -xvf node-v20.15.0-linux-x64.tar 
+    tar -C /usr/local --strip-components=1 -xvf node-v20.15.0-linux-x64.tar
 
 # This customizes the launcher UI
 # https://jupyter-app-launcher.readthedocs.io/en/latest/usage.html
@@ -113,6 +113,11 @@ COPY ./docker/flux-icon.png $HOME/flux-icon.png
 # note that previous examples are added via git volume in config.yaml
 ENV SHELL=/usr/bin/bash
 ENV FLUX_URI_RESOLVE_LOCAL=t
+# Prepend /usr/lib to LD_LIBRARY_PATH because Ubuntu Jammy comes with
+# UCX 1.12. Without this, DYAD will build (correctly) with UCX 1.13.1, but
+# it will try to run with the system install of UCX 1.12, which can cause
+# either a crash or a hang.
+ENV LD_LIBRARY_PATH="/usr/lib:$LD_LIBRARY_PATH"
 
 EXPOSE 8888
 ENTRYPOINT ["tini", "--"]
@@ -132,7 +137,7 @@ RUN mkdir -p $HOME/.local/share && \
 #    flux start flux account add-user --username=jovyan --bank=default && \
 #    flux start flux jobtap load mf_priority.so && \
 #    flux start flux account-update-db
-    
+
 USER ${NB_USER}
 
 CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
