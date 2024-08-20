@@ -48,11 +48,11 @@ class DYADTorchDataset(Dataset):
         self.reader = None
         self.num_images_read = 0
         self.batch_size = batch_size
+        self.broker_per_node = 1
         args = ConfigArguments.get_instance()
         self.serial_args = pickle.dumps(args)
         if num_workers == 0:
             self.worker_init(-1)
-        self.broker_per_node = 1
 
     def worker_init(self, worker_id):
         # Configure PyTorch components
