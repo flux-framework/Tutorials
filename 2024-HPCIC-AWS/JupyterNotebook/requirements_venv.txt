@@ -6,4 +6,4 @@ jsonschema
 cffi
 ply
 pyyaml
-dlio_benchmark @ git+https://github.com/argonne-lcf/dlio_benchmark.git
+dlio_benchmark @ git+https://github.com/argonne-lcf/dlio_benchmark.git@v2.0.0
