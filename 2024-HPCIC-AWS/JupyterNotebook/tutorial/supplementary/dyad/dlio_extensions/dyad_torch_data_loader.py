@@ -48,11 +48,11 @@ class DYADTorchDataset(Dataset):
         self.reader = None
         self.num_images_read = 0
         self.batch_size = batch_size
+        self.broker_per_node = 1
         args = ConfigArguments.get_instance()
         self.serial_args = pickle.dumps(args)
         if num_workers == 0:
             self.worker_init(-1)
-        self.broker_per_node = 1
 
     def worker_init(self, worker_id):
         # Configure PyTorch components
@@ -138,12 +138,10 @@ class DyadTorchDataLoader(BaseDataLoader):
             prefetch_factor = math.ceil(self._args.prefetch_size / self._args.read_threads)
         else:
             prefetch_factor = self._args.prefetch_size
-        if prefetch_factor > 0:
-            if self._args.my_rank == 0:
-        else:
+        if prefetch_factor <= 0:
             prefetch_factor = 2
             if self._args.my_rank == 0:
-        logging.debug(f"{utcnow()} Setup dataloader with {self._args.read_threads} workers {torch.__version__}")
+                logging.debug(f"{utcnow()} Setup dataloader with {self._args.read_threads} workers {torch.__version__}")
         if self._args.read_threads==0:
             kwargs={}
         else:

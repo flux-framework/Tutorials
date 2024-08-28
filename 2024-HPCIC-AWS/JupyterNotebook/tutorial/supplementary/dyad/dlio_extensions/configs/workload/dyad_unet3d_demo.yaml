@@ -20,7 +20,7 @@ reader:
   read_threads: 1
   file_shuffle: seed
   sample_shuffle: seed
-  multiprocessing_context: spawn
+  multiprocessing_context: fork
   data_loader_classname: dyad_torch_data_loader.DyadTorchDataLoader
   data_loader_sampler: index
 
