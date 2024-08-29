@@ -26,6 +26,12 @@ hub:
     tag: "hpcic-2024"
     pullPolicy: Always
 
+  # Increase the resources for large tutorials
+  resources:
+    requests:
+      cpu: 28
+      memory: 96Gi
+
 # # https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
 # scheduling:
 #   podPriority:
@@ -61,9 +67,9 @@ singleuser:
     - name: init-myservice
       image: ghcr.io/flux-framework/flux-jupyter-init:hpcic-2024
       command: ["/entrypoint.sh"]
-      volumeMounts:
-        - name: flux-tutorial
-          mountPath: /home/jovyan
+#      volumeMounts:
+#        - name: flux-tutorial
+#          mountPath: /home/jovyan
 
   # This is how we get the tutorial files added
   storage:
@@ -71,9 +77,9 @@ singleuser:
 
     # gitRepo volume is deprecated so we need another way
     # https://kubernetes.io/docs/concepts/storage/volumes/#gitrepo
-    extraVolumes:
-      - name: flux-tutorial
-        emptyDir: {}
-    extraVolumeMounts:
-      - name: flux-tutorial
-        mountPath: /home/jovyan
+#    extraVolumes:
+#      - name: flux-tutorial
+#        emptyDir: {}
+#    extraVolumeMounts:
+#      - name: flux-tutorial
+#        mountPath: /home/jovyan
