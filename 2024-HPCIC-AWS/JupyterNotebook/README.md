@@ -845,6 +845,8 @@ helm install flux-jupyter jupyterhub/jupyterhub --values aws/config-aws.yaml
 helm install flux-jupyter jupyterhub/jupyterhub --values aws/config-aws-ssl.yaml
 ```
 
+If you're configuring SSL, you will need to get the service DNS name after creation. With that name you can assign a CNAME as appropriate. Then delete the `autohttps` pod, which triggers a pod recreation and certificate generation.
+
 If you mess something up, you can change the file and run `helm upgrade`:
 
 ```bash
