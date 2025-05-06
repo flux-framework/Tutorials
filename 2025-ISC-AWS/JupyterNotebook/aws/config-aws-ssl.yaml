@@ -1,0 +1,85 @@
+# A few notes!
+# The hub -> authentic class defaults to "dummy"
+# We shouldn't need any image pull secrets assuming public
+# There is a note about the database being a sqlite pvc
+# (and a TODO for better solution for Kubernetes)
+
+# This is the concurrent spawn limit, likely should be increased (deafults to 64)
+hub:
+  concurrentSpawnLimit: 128
+  config:
+    DummyAuthenticator:
+      password: butter
+    JupyterHub:
+      admin_access: true
+      authenticator_class: dummy
+  db:
+    pvc:
+      # Defaults to 1Gi
+      storage: 32Gi
+      # Add the storageclass name, defaults to gp2
+      storageClassName: gp3
+      
+  # This is the image I built based off of jupyterhub/k8s-hub, 3.0.2 at time of writing this
+  image: 
+    name: ghcr.io/flux-framework/flux-jupyter-hub
+    tag: "hpcic-2024"
+    pullPolicy: Always
+
+  # Increase the resources for large tutorials
+  resources:
+    requests:
+      cpu: 28
+      memory: 96Gi
+
+# # https://z2jh.jupyter.org/en/latest/administrator/optimization.html#scaling-up-in-time-user-placeholders
+# scheduling:
+#   podPriority:
+#     enabled: true
+#   userPlaceholder:
+#     # Specify 3 dummy user pods will be used as placeholders
+#     replicas: 3
+
+proxy:
+  https:
+    enabled: true
+    hosts:
+      - tutorial.flux-framework.org
+    letsencrypt:
+      contactEmail: you@email.com
+
+# This is the "spawn" image
+singleuser:
+  image:
+    name: ghcr.io/flux-framework/flux-jupyter-spawn
+    tag: "hpcic-2024"
+    pullPolicy: Always
+  cpu:
+    limit: 2
+    guarantee: 2
+  memory:
+    limit: '4G'
+    guarantee: '4G'
+  cmd: /entrypoint.sh
+
+  # This runs as the root user, who clones and changes ownership to uid 1000
+  initContainers:
+    - name: init-myservice
+      image: ghcr.io/flux-framework/flux-jupyter-init:hpcic-2024
+      command: ["/entrypoint.sh"]
+#      volumeMounts:
+#        - name: flux-tutorial
+#          mountPath: /home/jovyan
+
+  # This is how we get the tutorial files added
+  storage:
+    type: none
+
+    # gitRepo volume is deprecated so we need another way
+    # https://kubernetes.io/docs/concepts/storage/volumes/#gitrepo
+#    extraVolumes:
+#      - name: flux-tutorial
+#        emptyDir: {}
+#    extraVolumeMounts:
+#      - name: flux-tutorial
+#        mountPath: /home/jovyan
