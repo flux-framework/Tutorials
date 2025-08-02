@@ -69,21 +69,25 @@ c.Authenticator.admin_users = {"admin"}
 
 # We need to make this longer for usernetes to start
 c.Spawner.start_timeout = 300
+c.Spawner.http_timeout = 300
+c.EC2Spawner.http_timeout = 300
+c.EC2Spawner.start_timeout = 300
 
 # -----------------------------------------------------------------------------
 # Custom EC2Spawner Settings
 # -----------------------------------------------------------------------------
 # These are the settings for your custom ec2_spawner.py class.
 
-# The AMI ID for the user's VM. This AMI should have Python, JupyterLab,
+# The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-c.EC2Spawner.ami = "ami-06cebbfb446ee0ceb"
+c.EC2Spawner.ami = "ami-007de09198dd7975d"
 
 # Instance type for each user's server.
-# 't4g.large' is recommended for ARM-based performance/cost balance.
+# 't4g.2xlarge' is what had a maximum fom per core ratio in my experiments
 c.EC2Spawner.instance_type = "t4g.2xlarge"
 
 # The name of the EC2 key pair for SSH access (for debugging).
+# We should remove this for actual tutorial.
 c.EC2Spawner.key_name = "dinosaur-rsa"
 
 # Security Group for the spawned instances. Must allow port 8888 ingress
@@ -156,10 +160,10 @@ c.JupyterHub.db_url = "sqlite:////srv/jupyterhub/jupyterhub.sqlite"
 # Other Optional Settings
 # -----------------------------------------------------------------------------
 
-# Set a concurrent spawn limit to prevent runaway costs if many people
+# Concurrent spawn limit to prevent runaway costs if many people
 # log in at once. Should be slightly higher than your expected user count.
 c.JupyterHub.concurrent_spawn_limit = 120
 
-# Set a memory limit for the Hub process itself (not the user servers).
+# Memory limit for the Hub process itself (not the user servers).
 # The default is usually fine.
 # c.JupyterHub.cookie_secret_file = '/srv/jupyterhub/jupyterhub_cookie_secret' # Optional, but good practice

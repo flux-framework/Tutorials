@@ -363,11 +363,17 @@ git clone https://github.com/flux-framework/flux-accounting && \
     ./configure --prefix=/usr && \
     make -j && sudo make install
 
-sudo apt-get update && sudo apt-get install -y nodejs && sudo apt-get clean
-wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-x64.tar.xz && \
+# This is for arm
+wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-arm64.tar.xz && \
     sudo apt-get update && sudo apt-get install -y xz-utils && sudo rm -rf /var/lib/apt/lists/* && \
-    xz -d -v node-v20.15.0-linux-x64.tar.xz && \
-    sudo tar -C /usr/local --strip-components=1 -xvf node-v20.15.0-linux-x64.tar
+    xz -d -v node-v20.15.0-linux-arm64.tar.xz && \
+    sudo tar -C /usr/local --strip-components=1 -xvf node-v20.15.0-linux-arm64.tar
+
+sudo apt-get purge -y nodejs npm
+sudo apt-get autoremove -y
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+sudo rm -rf /usr/local/bin/node
 
 # This customizes the launcher UI
 # https://jupyter-app-launcher.readthedocs.io/en/latest/usage.html

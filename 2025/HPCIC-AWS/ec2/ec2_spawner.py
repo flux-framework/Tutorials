@@ -8,7 +8,6 @@ class EC2Spawner(Spawner):
     """
     A Spawner for JupyterHub that launches a user's server on a new EC2 instance.
     """
-
     ami = Unicode(
         "ami-06cebbfb446ee0ceb",
         config=True,
@@ -86,6 +85,13 @@ echo "$0"
 sudo modprobe ip6_tables
 sudo modprobe ip6table_nat
 sudo modprobe iptable_nat
+sudo chown -R ubuntu /home/ubuntu
+
+# Clone repository tutorials, expose tutorial notebooks
+mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher
+git clone -b add-hpcic-2025 https://github.com/flux-framework/Tutorials /tmp/tutorials
+cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
+cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
 
 make -C /home/ubuntu/usernetes up
 sleep 3
@@ -95,13 +101,6 @@ echo "make -C /home/ubuntu/usernetes install-flannel" >> /home/ubuntu/start-user
 echo "make -C /home/ubuntu/usernetes kubeconfig" >> /home/ubuntu/start-usernetes.sh
 echo "export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig"
 chmod +x /home/ubuntu/start-usernetes.sh
-
-# This should already be done on the host
-# sudo apt-get purge -y nodejs npm
-# sudo apt-get autoremove -y
-# curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-# sudo apt-get install -y nodejs
-rm -rf /usr/local/bin/node
 
 # Use sudo to switch to the user and bash to execute the script
 sudo -i -u {user} bash << 'EOF'
@@ -128,7 +127,7 @@ flux start /usr/local/bin/jupyter-lab \\
 echo "JupyterLab command finished."
 EOF
 
-echo "--- UserData Script Finished ---"
+echo "UserData Script Finished ---"
 date
 """
         return script
@@ -246,7 +245,7 @@ date
         if not self.instance_id:
             return 0  # Not running
 
-        ec2 = boto3.resource("ec2")
+        ec2 = boto3.resource("ec2", region_name=self.region)
         instance = ec2.Instance(self.instance_id)
 
         try:
