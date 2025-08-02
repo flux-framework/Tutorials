@@ -1,0 +1,34 @@
+apiVersion: flux-framework.org/v1alpha2
+kind: MiniCluster
+metadata:
+  name: flux-sample
+spec:
+  size: 1
+  tasks: 8
+  
+  # If quiet is false, we see all flux logging
+  logging:
+    quiet: true
+
+  # The view should match the architecture of the application image.
+  # You aren't required to use a view for Flux 
+  # You can also install to your application container
+  flux:
+    optionFlags: -o cpu-affinity=per-task
+    container: 
+      image: ghcr.io/converged-computing/flux-view-rocky:arm-9
+      
+  # This container is built for AWS EFA with libfabric
+  containers:
+    # This was built on hpc7g
+   - image: ghcr.io/converged-computing/lammps-reax-efa:ubuntu2404-efa
+
+     # You can set the working directory if your container WORKDIR is not correct.
+     workingDir: /opt/lammps/examples/reaxff/HNS
+     command: lmp -v x 8 -v y 8 -v z 8 -in in.reaxff.hns -nocite
+
+     # This is more expert optimization to ensure /dev/shm does not limit efa
+     volumes:
+        shared-memory:
+          emptyDir: true
+          emptyDirMedium: "memory"
