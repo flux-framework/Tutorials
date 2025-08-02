@@ -103,11 +103,13 @@ sudo modprobe iptable_nat
 sudo chown -R ubuntu /home/ubuntu
 
 # Clone repository tutorials, expose tutorial notebooks
-mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static
+mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static /srv/jupyterlab/static
 git clone --depth 1 -b add-hpcic-2025 https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
 cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
+cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
+cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /srv/jupyterlab/static/
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
