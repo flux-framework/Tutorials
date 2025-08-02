@@ -3,6 +3,21 @@ import boto3
 from jupyterhub.spawner import Spawner
 from traitlets import Unicode, Dict, List
 
+# The default AMI disk size is small and we get disk pressure
+# So let's try increasing.
+desired_root_volume_size_gb = 150
+
+# Define the block device mappings - note that lsblk will show /dev/nvme0n1 but it's this one
+block_device_mappings = [
+    {
+        'DeviceName': '/dev/sda1',
+        'Ebs': {
+            'VolumeSize': desired_root_volume_size_gb,
+            'DeleteOnTermination': True,
+            'VolumeType': 'gp2'
+        }
+    }
+]
 
 class EC2Spawner(Spawner):
     """
@@ -88,11 +103,11 @@ sudo modprobe iptable_nat
 sudo chown -R ubuntu /home/ubuntu
 
 # Clone repository tutorials, expose tutorial notebooks
-# This could be done once more (final) to make startup faster
-mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher
+mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static
 git clone --depth 1 -b add-hpcic-2025 https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
+cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
@@ -155,6 +170,7 @@ date
                 ImageId=self.ami,
                 InstanceType=self.instance_type,
                 KeyName=self.key_name,
+                BlockDeviceMappings=block_device_mappings,
                 SecurityGroupIds=self.security_group_ids,
                 SubnetId=self.subnet_id,
                 IamInstanceProfile={"Arn": self.iam_instance_profile_arn},

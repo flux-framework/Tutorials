@@ -1,13 +1,49 @@
 - title: Flux Tutorial Notebook
   description: This is the main Flux Framework Tutorial
   type: jupyterlab-commands
-  icon: ./flux-icon.png
+  icon: ./static/flux-icon.png
   source:
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
         path: ./tutorial/ch1/01_flux_tutorial.ipynb
-        icon: ./flux-icon.png
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: Flux Python SDK Tutorial
+  description: This notebook will teach you about the Flux Python SDK
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./tutorial/ch2/02_flux_tutorial.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: Flux Process, Monitoring, Utilities Tutorial
+  description: This will teach you about Flux utilities
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./tutorial/ch3/03_flux_tutorial.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: Flux Framework and User-space Kubernetes
+  description: This will teach you about running AI/ML workloads with Flux and Kubernetes
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./tutorial/ch1/04_flux_tutorial_usernetes.ipynb
+        icon: ./static/flux-icon.png
   catalog: Notebook
 
 - title: Flux Framework Portal
