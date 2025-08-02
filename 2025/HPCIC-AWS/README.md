@@ -14,6 +14,8 @@ For AWS Tutorial Day users:
 
 > To run the AWS tutorial, visit https://tutorial.flux-framework.org. You can use any login you want, but choose something relatvely uncommon  (like your email address) or you may end up sharing a JupyterLab instance with another user. The tutorial password will be provided to you. 
 
+Since we start usernetes and build the container, the startup takes a few minutes, and we should start a little early (before the user expects to need it).
+
 ## Build Images
 
 Unlike previous tutorials, since this one uses Usernetes and Flux, it is done via an EC2 instance, and we have built a custom EC2 spawner for it. This was built on a t4g.2xlarge instance, and then saved to an AMI. The logic is in [build](build).
@@ -163,7 +165,7 @@ echo "Using Subnet ID: $SUBNET_ID"
 
 ```bash
 # This AMI has Flux, LAMMPS, Usernetes
-AMI_ID="ami-06cebbfb446ee0ceb"
+AMI_ID="ami-0708f1489fd7a800b"
 KEY_NAME="<KEYNAME>"
 SECURITY_GROUP_ID="sg-05a9f952f6610732d"
 SUBNET_ID="subnet-0c8947f74b66f0579"
@@ -197,8 +199,6 @@ sudo mkdir -p /srv/jupyterhub
 # Our custom login page needs to be in ./templates there too
 ```
 
-#### Start Jupyter
-
 I added access for my ip address:
 
 ```bash
@@ -206,11 +206,22 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8081 --cidr $MY_IP/32 --region us-east-2
 ```
 
+#### Start Jupyter
+
+TODO:
+ - create new notebook and workspace layout
+ - save workspace
+ - see if can load
+
+
 ```bash
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 sudo chown -R ubuntu /srv/jupyterhub/
 export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/local-ipv4)
 ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
+
+# Development (no culling)
+~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config_no_culler.py
 
 # To keep running
 nohup ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py &

@@ -6,7 +6,7 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ch1/01_flux_tutorial.ipynb
+        path: ./tutorial/ch1/01_flux_tutorial.ipynb
         icon: ./flux-icon.png
   catalog: Notebook
 

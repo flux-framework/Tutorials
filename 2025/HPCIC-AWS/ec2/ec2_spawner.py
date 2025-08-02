@@ -88,19 +88,16 @@ sudo modprobe iptable_nat
 sudo chown -R ubuntu /home/ubuntu
 
 # Clone repository tutorials, expose tutorial notebooks
+# This could be done once more (final) to make startup faster
 mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher
-git clone -b add-hpcic-2025 https://github.com/flux-framework/Tutorials /tmp/tutorials
+git clone --depth 1 -b add-hpcic-2025 https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
+sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
-make -C /home/ubuntu/usernetes up
-sleep 3
-echo "$!/bin/bash" >> /home/ubuntu/start-usernetes.sh
-echo "make -C /home/ubuntu/usernetes kubeadm-init" >> /home/ubuntu/start-usernetes.sh
-echo "make -C /home/ubuntu/usernetes install-flannel" >> /home/ubuntu/start-usernetes.sh
-echo "make -C /home/ubuntu/usernetes kubeconfig" >> /home/ubuntu/start-usernetes.sh
-echo "export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig"
+cp /tmp/tutorials/2025/HPCIC-AWS/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
+sudo chown -R ubuntu /home/ubuntu/
 
 # Use sudo to switch to the user and bash to execute the script
 sudo -i -u {user} bash << 'EOF'
