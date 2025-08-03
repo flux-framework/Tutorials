@@ -42,7 +42,7 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/ch1/04_flux_framework_usernetes.ipynb
+        path: ./tutorial/ch4/04_flux_framework_usernetes.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 

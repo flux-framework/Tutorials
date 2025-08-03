@@ -107,6 +107,7 @@ mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.ju
 git clone --depth 1 -b add-hpcic-2025 https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
+cp /tmp/tutorials/2025/HPCIC-AWS/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
 cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
 cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
 cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /srv/jupyterlab/static/
@@ -164,9 +165,6 @@ date
                 "Tags": [{"Key": k, "Value": v} for k, v in tags.items()],
             }
         ]
-
-        user_data_script = self._get_user_data()
-
         try:
             instance = ec2.create_instances(
                 ImageId=self.ami,
@@ -177,7 +175,7 @@ date
                 SubnetId=self.subnet_id,
                 IamInstanceProfile={"Arn": self.iam_instance_profile_arn},
                 TagSpecifications=tag_spec,
-                UserData=user_data_script,
+                UserData=self._get_user_data(),
                 MinCount=1,
                 MaxCount=1,
             )[0]

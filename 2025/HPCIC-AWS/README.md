@@ -208,12 +208,6 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 
 #### Start Jupyter
 
-TODO:
- - create new notebook and workspace layout
- - save workspace
- - see if can load
-
-
 ```bash
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 sudo chown -R ubuntu /srv/jupyterhub/

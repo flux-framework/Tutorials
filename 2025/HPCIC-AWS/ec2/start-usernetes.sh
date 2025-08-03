@@ -1,6 +1,8 @@
 #!/bin/bash
 make -C /home/ubuntu/usernetes up
+sleep 3
 make -C /home/ubuntu/usernetes kubeadm-init
+sleep 3
 make -C /home/ubuntu/usernetes install-flannel
 make -C /home/ubuntu/usernetes kubeconfig
 export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig
@@ -15,6 +17,9 @@ sudo cp /home/ubuntu/usernetes/kubeconfig /home/ubuntu/.kube/config
 # Taint away!
 kubectl taint node "${control_plane_node}" node-role.kubernetes.io/control-plane:NoSchedule- 
 kubectl label node "${control_plane_node}" node.kubernetes.io/exclude-from-external-load-balancers-
+
+# This ensures the node is ingress ready
+kubectl label node u7s-$(hostname) ingress-ready=true
 
 echo "Cluster is ready. 🤓"
 # echo "export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig" 
