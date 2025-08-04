@@ -108,9 +108,8 @@ git clone --depth 1 -b add-hpcic-2025 https://github.com/flux-framework/Tutorial
 cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
-cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
-cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /home/ubuntu/.jupyter/lab/static/flux-icon.png
-cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/assets/flux-icon.png /srv/jupyterlab/static/
+mkdir -p /home/ubuntu/.jupyter/workspaces
+cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/ch4/usernetes-workspace.jupyterlab-workspace /home/ubuntu/.jupyter/workspaces/
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh

@@ -384,6 +384,8 @@ sudo python3 -m pip install jupyterhub_idle_culler --break-system-packages
 sudo mkdir -p /usr/local/share/jupyter/lab/jupyter_app_launcher
 python3 -m pip install jupyterhub boto3 --break-system-packages
 python3 -m pip install git+https://github.com/kubeflow/sdk.git@main#subdirectory=python --break-system-packages
+sudo python3 -m pip install river riverapi --break-system-packages
+sudo python3 -m pip install ipywidgets --break-system-packages
 sudo apt-get install -y bash-completion
 
 # This is for riverML

@@ -209,13 +209,15 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 #### Start Jupyter
 
 ```bash
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 sudo chown -R ubuntu /srv/jupyterhub/
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/local-ipv4)
-~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
 
 # Development (no culling)
 ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config_no_culler.py
+
+# With culling
+~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
 
 # To keep running
 nohup ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py &
