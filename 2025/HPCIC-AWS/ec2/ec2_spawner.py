@@ -14,7 +14,7 @@ block_device_mappings = [
         'Ebs': {
             'VolumeSize': desired_root_volume_size_gb,
             'DeleteOnTermination': True,
-            'VolumeType': 'gp2'
+            'VolumeType': 'gp3'
         }
     }
 ]
