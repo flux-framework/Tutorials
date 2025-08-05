@@ -5,7 +5,7 @@ from traitlets import Unicode, Dict, List
 
 # The default AMI disk size is small and we get disk pressure
 # So let's try increasing.
-desired_root_volume_size_gb = 150
+desired_root_volume_size_gb = 256
 
 # Define the block device mappings - note that lsblk will show /dev/nvme0n1 but it's this one
 block_device_mappings = [
