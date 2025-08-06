@@ -18,9 +18,18 @@ Since we start usernetes and build the container, the startup takes a few minute
 
 ## Build Images
 
-Unlike previous tutorials, since this one uses Usernetes and Flux, it is done via an EC2 instance, and we have built a custom EC2 spawner for it. This was built on a t4g.2xlarge instance, and then saved to an AMI. The logic is in [build](build).
+Unlike previous tutorials, since this one uses Usernetes and Flux, it is done via an EC2 instance, and we have built a custom EC2 spawner for it. This was built on a t4g.2xlarge (Graviton 2) and then hpc7g.16xlarge (Graviton 3) instance, and then saved to an AMI. Incremental changes were saved from the image directly. Note that we needed to build the docker image for usernetes to be cached on the node before a save:
+
+```bash
+cd /home/ubuntu/usernetes
+docker build -t usernetes_node .
+```
+
+The base logic is in [build](build).
   
 ## Deploy to AWS
+
+**Do not forget to use the RADIUSS account**
 
 ### 1. Setup
 
@@ -49,7 +58,7 @@ aws iam create-policy --policy-name JupyterHub-EC2-Manager-Policy --policy-docum
 And:
 
 ```bash
-aws iam create-policy --policy-name JupyterHub-PassRole-Policy --policy-document file://jupyterhub-passrole-policy.json
+aws iam create-policy --policy-name JupyterHub-PassRole-Policy --policy-document file://ec2/jupyterhub-passrole-policy.json
 ```
 ```console
 {
@@ -66,11 +75,6 @@ aws iam create-policy --policy-name JupyterHub-PassRole-Policy --policy-document
         "UpdateDate": "2025-08-01T00:47:28+00:00"
     }
 }
-```
-```bash
-aws iam attach-role-policy \
-    --role-name JupyterHub-EC2-Manager-Role \
-    --policy-arn arn:aws:iam::633731392008:policy/JupyterHub-PassRole-Policy
 ```
 
 ```bash
@@ -107,9 +111,12 @@ aws iam create-role --role-name JupyterHub-EC2-Manager-Role --assume-role-policy
 ```
 
 ```bash
-# Attach the policy to the role
-aws iam attach-role-policy --role-name JupyterHub-EC2-Manager-Role --policy-arn arn:aws:iam::633731392008:policy/JupyterHub-EC2-Manager-Policy
+aws iam attach-role-policy \
+    --role-name JupyterHub-EC2-Manager-Role \
+    --policy-arn arn:aws:iam::633731392008:policy/JupyterHub-PassRole-Policy
+```
 
+```bash
 # Create an instance profile, which is the container for the role that EC2 uses
 aws iam create-instance-profile --instance-profile-name JupyterHub-EC2-Manager-Profile
 ```
@@ -129,34 +136,44 @@ aws iam create-instance-profile --instance-profile-name JupyterHub-EC2-Manager-P
 aws iam add-role-to-instance-profile --instance-profile-name JupyterHub-EC2-Manager-Profile --role-name JupyterHub-EC2-Manager-Role
 ```
 
-#### Security Group
+#### Security Grouph
 
 Create the security group (we will do this once):
 
 ```bash
-VPC_ID=$(aws ec2 describe-vpcs --filters "Name=isDefault,Values=true" --query "Vpcs[0].VpcId" --output text --region us-east-2)
+# Get the default VPC (if subnets are in right region)
+VPC_ID=$(aws ec2 describe-vpcs --filters "Name=isDefault,Values=true" --query "Vpcs[0].VpcId" --output text --region us-east-1)
+
+# Create a new VPC
 
 # create the security group
-SG_ID=$(aws ec2 create-security-group --group-name "JupyterHub-Hub-SG" --description "Security group for the main JupyterHub instance" --vpc-id $VPC_ID --query 'GroupId' --output text --region us-east-2)
+SG_ID=$(aws ec2 create-security-group --group-name "JupyterHub-Hub-SG" --description "Security group for the main JupyterHub instance" --vpc-id $VPC_ID --query 'GroupId' --output text --region us-east-1)
+# sg-0a3f6eea31df1b19c
 
 # add rules to the security group for ssh from my address (so nobody is angry with me)
 MY_IP=$(curl -s http://checkip.amazonaws.com)
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr $MY_IP/32 --region us-east-2
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 22 --cidr $MY_IP/32 --region us-east-1
 
 # Allow HTTP (port 80) and HTTPS (port 443) from anywhere for users
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 --region us-east-2
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 --region us-east-2
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8888 --cidr 0.0.0.0/0 --region us-east-2
-aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8000 --cidr 0.0.0.0/0 --region us-east-2
-sudo python3 -m pip install pycurl --break-system-packages
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 80 --cidr 0.0.0.0/0 --region us-east-1
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 --region us-east-1
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8888 --cidr 0.0.0.0/0 --region us-east-1
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8000 --cidr 0.0.0.0/0 --region us-east-1
+
+# Flux
 # Created Security Group with ID: sg-05a9f952f6610732d
+# RADIUSS
+# Created Security Group with ID: sg-0a3f6eea31df1b19c
 echo "Created Security Group with ID: $SG_ID"
+# vpc-0722eea756bb11a06
 ```
+
+
 
 #### Subnet
 
 ```bash
-SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=map-public-ip-on-launch,Values=true" --query "Subnets[0].SubnetId" --output text --region us-east-2)
+SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=map-public-ip-on-launch,Values=true" --query "Subnets[0].SubnetId" --output text --region us-east-1)
 echo "Using Subnet ID: $SUBNET_ID"
 # Using Subnet ID: subnet-0c8947f74b66f0579
 ```
@@ -168,7 +185,8 @@ echo "Using Subnet ID: $SUBNET_ID"
 AMI_ID="ami-0708f1489fd7a800b"
 KEY_NAME="<KEYNAME>"
 SECURITY_GROUP_ID="sg-05a9f952f6610732d"
-SUBNET_ID="subnet-0c8947f74b66f0579"
+# This is associated with vpc-0722eea756bb11a06 in RADIUSS "project" vpc
+SUBNET_ID="subnet-0b80853238a402001"
 
 aws ec2 run-instances \
     --image-id "$AMI_ID" \
@@ -213,6 +231,8 @@ sudo chown -R ubuntu /srv/jupyterhub/
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/local-ipv4)
 
+# Kolomogorov
+
 # Development (no culling)
 ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config_no_culler.py
 
@@ -223,14 +243,64 @@ export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169
 nohup ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py &
 ```
 
-Note that we will want to generate a certificate:
+#### SSL / Certificates
+
+Note that we will want to generate a certificate. First, install and configure certbot.
 
 ```bash
-sudo apt-get install -y snapd
-sudo snap install core; sudo snap refresh core
-
 # Certbot!
-sudo snap install --classic certbot
-sudo ln -s /snap/bin/certbot /usr/bin/certbot
-sudo certbot --nginx
+# tutorial.flux-framework.org
+sudo certbot certonly --standalone
+sudo chown -R ubuntu /etc/letsencrypt/
+```
+
+Then add this content to `/etc/nginx/sites-available/default`
+
+And restart:
+
+```bash
+sudo systemctl reload nginx
+```
+
+#### SSL and Snapshots
+
+I originally created the AMI in the wrong account. To share between accounts I needed to take off automatic encryption of snapshots:
+
+```
+server {
+    listen 80;
+    server_name tutorial.flux-framework.org;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name tutorial.flux-framework.org;
+
+    ssl_certificate /etc/letsencrypt/live/tutorial.flux-framework.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tutorial.flux-framework.org/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support
+        proxy_http_version 1.1;
+	#proxy_set_header Upgrade $websocket_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+And then save a new one, getting the volume from the name.
+
+```bash
+# Create the snapshot
+aws ec2 create-snapshot --volume-id vol-0db075348c995f4c1 --description "HPCIC Flux Tutorial 2025 JupyterHub EC2 Spawner (save August 5, 2025)" --region us-east-2
+
+# and the image
+aws ec2 register-image --name "hpcic-flux-tutorial-2025" --description "HPCIC Flux Framework Tutorial (JupyterHub Spawner EC2) 2025" --root-device-name /dev/sda1 --block-device-mappings "DeviceName=/dev/sda1,Ebs={SnapshotId=snap-0786282c76b84f55e}" --region us-east-2
 ```

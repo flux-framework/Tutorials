@@ -4,10 +4,8 @@ set -euo pipefail
 
 ################################################################
 #
-# Flux, Usernetes, Singularity, and EFA
-#
-
-/usr/bin/cloud-init status --wait
+# Flux, Usernetes, Jupyter, and EFA
+# I started with ubuntu 24.04 ARM server edition
 
 sudo apt-get update && sudo apt-get install -y build-essential \
     tar \
@@ -71,8 +69,6 @@ sudo apt-get update && \
         g++ && \
     sudo rm -rf /var/lib/apt/lists/*
 
-# Python - instead of a system python we install anaconda
-# https://docs.conda.io/en/latest/miniconda.html#linux-installers
 sudo pip install --upgrade --ignore-installed --break-system-packages \
         "markupsafe==2.0.0" \
         coverage cffi ply six pyyaml "jsonschema>=2.6,<4.0" \
@@ -82,6 +78,8 @@ sudo apt-get update && \
     sudo apt-get -qq install -y --no-install-recommends \
         libsodium-dev \
         libzmq3-dev \
+        certbot \
+        nginx \
         libczmq-dev \
         libjansson-dev \
         libmunge-dev \
@@ -123,8 +121,7 @@ git clone --recurse-submodules https://github.com/openpmix/prrte.git && \
     git checkout v3.0.1 && \
     ./autogen.pl && \
     ./configure --prefix=/opt/prrte && \
-    # This installs OK but the exit code is off.
-    make -j all install || true
+    make -j && sudo make -j all install
  
 export LANG=C.UTF-8
 export FLUX_SECURITY_VERSION=0.14.0
@@ -171,7 +168,7 @@ sudo apt-get -qq install -y --no-install-recommends \
         libboost-dev \
         libyaml-cpp-dev \
 	curl
-    
+
 export FLUX_SCHED_VERSION=0.45.0
 cd /opt/flux
 wget https://github.com/flux-framework/flux-sched/releases/download/v${FLUX_SCHED_VERSION}/flux-sched-${FLUX_SCHED_VERSION}.tar.gz && \
@@ -180,7 +177,7 @@ wget https://github.com/flux-framework/flux-sched/releases/download/v${FLUX_SCHE
     ./configure --prefix=/usr --sysconfdir=/etc && \
     make -j && \
     sudo make install && \
-    ldconfig
+    sudo ldconfig
 
 sudo apt-get update && \
     sudo apt-get install -y libfftw3-dev libfftw3-bin pdsh libfabric-dev libfabric1 \
@@ -214,8 +211,9 @@ sudo curl -O https://efa-installer.amazonaws.com/aws-efa-installer-1.42.0.tar.gz
 
 export PATH=/opt/amazon/openmpi/bin/:$PATH
 cd /opt/
-git clone https://github.com/lammps/lammps.git && \
-    cd ./lammps && \
+sudo git clone https://github.com/lammps/lammps.git && \
+    sudo chown -R ubuntu /opt/lammps && \
+    cd /opt/lammps && \
     git fetch --depth 1 origin a8687b53724b630fb5f454c8d7be9f9370f8bb3b && \
     git checkout FETCH_HEAD && \
     mkdir build && \
@@ -248,6 +246,7 @@ sudo sed -i -e 's/^GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="systemd.unified_cgr
 sudo update-grub
 sudo mkdir -p /etc/systemd/system/user@.service.d
 
+cd /opt/lammps
 cat <<EOF | tee delegate.conf
 [Service]
 Delegate=cpu cpuset io memory pids
@@ -354,6 +353,7 @@ pip3 install ruamel.yaml.clib --break-system-packages
 wget https://gist.githubusercontent.com/vsoch/2b66b6f2b3885fc9c747e38cc73b78e2/raw/7d596101d87e20e55b5cac589acadb232b29ed3c/requirements.txt
 sudo python3 -m pip install -r requirements.txt --break-system-packages
 sudo python3 -m pip install ipykernel --break-system-packages
+sudo python3 -m pip install pycurl --break-system-packages
 sudo python3 -m pip install ipython --break-system-packages && sudo python3 -m IPython kernel install 
 
 # Flux accounting
@@ -369,11 +369,11 @@ wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-arm64.tar.xz && \
     xz -d -v node-v20.15.0-linux-arm64.tar.xz && \
     sudo tar -C /usr/local --strip-components=1 -xvf node-v20.15.0-linux-arm64.tar
 
-sudo apt-get purge -y nodejs npm
-sudo apt-get autoremove -y
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-sudo rm -rf /usr/local/bin/node
+# sudo apt-get purge -y nodejs npm
+# sudo apt-get autoremove -y
+# curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# sudo apt-get install -y nodejs
+# sudo rm -rf /usr/local/bin/node
 
 # This customizes the launcher UI
 # https://jupyter-app-launcher.readthedocs.io/en/latest/usage.html
@@ -414,7 +414,7 @@ chmod 777 $HOME/.local/share
 #    flux start flux jobtap load mf_priority.so && \
 #    flux start flux account-update-db
 
-sudo rm /usr/local/bin/node
+# sudo rm /usr/local/bin/node
 sudo npm install -g configurable-http-proxy
 # CMD ["flux", "start", "--test-size=4", "jupyter", "lab"]
 # 

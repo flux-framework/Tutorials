@@ -83,7 +83,7 @@ def get_parser():
         command.add_argument(
             "--np",
             help="number of processes per node",
-            default=8,
+            default=64,
             type=int,
         )
 
@@ -185,7 +185,7 @@ def run_lammps(args):
         z = random.choice(z_choices)
         print(f"\n🥑  Running iteration {i} with chosen x: {x} y: {y} z: {z}")
 
-        # flux run -N 1 --ntasks 8 -c 1 -o cpu-affinity=per-task --cwd /opt/lammps/examples/reaxff/HNS lmp -v x 32 -v y 8 -v z 16 -in in.reaxff.hns -nocite
+        # flux run -N 1 --ntasks 64 -c 1 -o cpu-affinity=per-task --cwd /opt/lammps/examples/reaxff/HNS lmp -v x 32 -v y 8 -v z 16 -in in.reaxff.hns -nocite
         # Separate commands for easier printing
         flux_cmd = [
             flux,

@@ -42,11 +42,13 @@ c.JupyterHub.hub_port = 8081
 c.JupyterHub.proxy_api_ip = "127.0.0.1"
 c.JupyterHub.proxy_api_port = 8001  # Default, can be left alone
 
-# The public IP of this Hub machine. This is CRITICAL.
-# The single-user servers on other EC2 instances need this IP to talk back to the Hub.
-# It is highly recommended to set this via an environment variable.
-# Before starting JupyterHub, you would run:
-# export HUB_CONNECT_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
+# When you add ssl, put the certs here and uncomment the below lines.
+# Also comment out he proxy api ip and port above.
+#c.JupyterHub.ssl_cert = "/etc/letsencrypt/live/tutorial.flux-framework.org/fullchain.pem"
+#c.JupyterHub.ssl_key = "/etc/letsencrypt/live/tutorial.flux-framework.org/privkey.pem"
+# c.JupyterHub.bind_url = 'http://127.0.0.1:8000'
+
+# The public IP of this Hub machine.
 hub_connect_ip = os.environ.get("HUB_CONNECT_IP")
 if not hub_connect_ip:
     raise RuntimeError(
@@ -80,28 +82,41 @@ c.EC2Spawner.start_timeout = 300
 
 # The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-c.EC2Spawner.ami = "ami-04c84d7b6a360f1a3"
+# RADIUSS
+c.EC2Spawner.ami = "ami-0628de7c414b901aa"
 
 # Instance type for each user's server.
 # 't4g.2xlarge' is what had a maximum fom per core ratio in my experiments
-c.EC2Spawner.instance_type = "t4g.2xlarge"
+c.EC2Spawner.instance_type = "hpc7g.16xlarge"
 
 # The name of the EC2 key pair for SSH access (for debugging).
 # We should remove this for actual tutorial.
-c.EC2Spawner.key_name = "dinosaur-rsa"
+c.EC2Spawner.key_name = "dinosaur"
 
 # Security Group for the spawned instances. Must allow port 8888 ingress
 # from this Hub's security group, and port 22 for your SSH access.
-c.EC2Spawner.security_group_ids = ["sg-05a9f952f6610732d"]
+
+# RADIUSS
+c.EC2Spawner.security_group_ids = ["sg-0a3f6eea31df1b19c"]
+# Flux
+# c.EC2Spawner.security_group_ids = ["sg-05a9f952f6610732d"]
 
 # The VPC subnet to launch the instances in. Must have internet access.
-c.EC2Spawner.subnet_id = "subnet-0c8947f74b66f0579"
+# RADIUSS
+c.EC2Spawner.subnet_id = "subnet-0b80853238a402001"
+# Flux
+# c.EC2Spawner.subnet_id = "subnet-0c8947f74b66f0579"
 
 # The IAM role for the *spawned* user instances. This role can grant permissions
 # to S3, etc., if the tutorial needs it. This is attached to the user VM.
+# RADIUSS
 c.EC2Spawner.iam_instance_profile_arn = (
-    "arn:aws:iam::633731392008:instance-profile/JupyterHub-EC2-Manager-Profile"
+    "arn:aws:iam::169939313066:instance-profile/JupyterHub-EC2-Manager-Profile"
 )
+# Flux
+# c.EC2Spawner.iam_instance_profile_arn = (
+#    "arn:aws:iam::633731392008:instance-profile/JupyterHub-EC2-Manager-Profile"
+# )
 
 # Custom tags to apply to each spawned EC2 instance for tracking.
 c.EC2Spawner.instance_tags = {

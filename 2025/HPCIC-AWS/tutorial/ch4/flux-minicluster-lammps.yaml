@@ -4,7 +4,7 @@ metadata:
   name: flux-sample
 spec:
   size: 1
-  tasks: 8
+  tasks: 64
   
   # If quiet is false, we see all flux logging
   logging:
@@ -25,7 +25,7 @@ spec:
 
      # You can set the working directory if your container WORKDIR is not correct.
      workingDir: /opt/lammps/examples/reaxff/HNS
-     command: lmp -v x 8 -v y 8 -v z 8 -in in.reaxff.hns -nocite
+     command: lmp -v x 4 -v y 4 -v z 4 -in in.reaxff.hns -nocite
 
      # This is more expert optimization to ensure /dev/shm does not limit efa
      volumes:

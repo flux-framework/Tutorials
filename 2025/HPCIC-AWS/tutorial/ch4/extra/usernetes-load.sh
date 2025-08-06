@@ -14,3 +14,9 @@ docker save -o /home/ubuntu/usernetes/images/${SAVE_URI} ${URI}
 echo "Importing ${URI} into usernetes node"
 docker exec -it usernetes-node-1 ctr --namespace k8s.io image import /usernetes/images/${SAVE_URI}
 docker exec -it usernetes-node-1 crictl images | grep ${URI}
+
+# Times hpc7g with g3
+# make up -> cluster 116 seconds
+# pulling mlrunner: 5m55s to running
+# pull to load lammps efa container: 7m
+# just to load from .tar: 2m 59s.

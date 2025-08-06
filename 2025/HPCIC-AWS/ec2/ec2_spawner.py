@@ -30,10 +30,10 @@ class EC2Spawner(Spawner):
     )
 
     # The EC2 instance type
-    instance_type = Unicode("t3g.2xlarge", config=True, help="The EC2 instance type.")
+    instance_type = Unicode("hpc7g.16xlarge", config=True, help="The EC2 instance type.")
 
     # Always need the region
-    region = Unicode("us-east-2", config=True, help="Region to deploy instance to")
+    region = Unicode("us-east-1", config=True, help="Region to deploy instance to")
 
     # The name of the EC2 key pair (leaving empty to not allow access)
     key_name = Unicode(
@@ -101,6 +101,16 @@ sudo modprobe ip6_tables
 sudo modprobe ip6table_nat
 sudo modprobe iptable_nat
 sudo chown -R ubuntu /home/ubuntu
+
+# Just in case...
+rm -rf ~/.aws
+
+# Someone is going to type this
+sudo ln -s $(which python3) /usr/bin/python
+
+# We need to stop nginx if it's running
+sudo systemctl stop nginx || true
+sudo systemctl disable nginx || true
 
 # Clone repository tutorials, expose tutorial notebooks
 mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static /srv/jupyterlab/static
