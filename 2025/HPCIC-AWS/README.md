@@ -227,7 +227,7 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 
 ## Suggestions
 
-- Have usernetes start at startup
+- Have usernetes start at startup?
 - Why is it starting in the ch4 directory
 - mnist / lammps need explanation
 - other chapters should have the same terminal setup

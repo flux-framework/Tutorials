@@ -59,13 +59,6 @@ class EC2Spawner(Spawner):
         help="Tags to apply to the spawned EC2 instance.",
     )
 
-    # keep_instances_on_shutdown = Bool(
-    #    False,
-    #    config=True,
-    #    help="If True, do not terminate EC2 instances when the spawner is stopped. "
-    #         "The instance will persist and be reconnected on next start."
-    #)
-
     # The subnet to launch the instance in
     subnet_id = Unicode(
         "", config=True, help="The subnet ID to launch the instance in."
@@ -239,13 +232,6 @@ date
         """
         Stop and terminate the user's EC2 instance.
         """
-        if self.keep_instances_on_shutdown:
-            self.log.info(
-                f"User {self.user.name}: `keep_instances_on_shutdown` is True. "
-                f"NOT terminating instance {self.instance_id}. State will be preserved."
-            )
-            return
-            
         if not self.instance_id:
             self.log.info(f"User {self.user.name}: No instance ID found to stop.")
             return

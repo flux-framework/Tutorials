@@ -30,24 +30,22 @@ c.JupyterHub.spawner_class = "ec2_spawner.EC2Spawner"
 # Custom login page
 c.JupyterHub.template_paths = ["/srv/jupyterhub/templates"]
 c.JupyterHub.static_paths = ["/srv/jupyterhub/static"]
-c.Spawner.notebook_dir = '/home/ubuntu'
 
 # IP and Port for the Hub to listen on.
-# These are defined WITH and WITHOUT SSL
 # '0.0.0.0' makes it listen on all network interfaces.
-
-# This is the SSL configuration START
-c.JupyterHub.hub_ip = "0.0.0.0"
+c.JupyterHub.hub_ip = "127.0.0.1"
 c.JupyterHub.hub_port = 8081
-c.JupyterHub.bind_url = 'http://127.0.0.1:8000'
-# This is the SSL configuration END
+c.JupyterHub.ip = "0.0.0.0"
+c.JupyterHub.port = 443
+c.JupyterHub.hub_connect_url = "http://127.0.0.1:8081"
 
-# The public-facing URL of the proxy.
-# These are commented out for SSL
-# You should have a web server (like NGINX) or a Load Balancer in front
-# of JupyterHub listening on port 80/443 and proxying to this port.
-# c.JupyterHub.proxy_api_ip = "127.0.0.1"
-# c.JupyterHub.proxy_api_port = 8001  # Default, can be left alone
+# Hub and proxy are on the same machine
+c.JupyterHub.internal_ssl = False
+
+# When you add ssl, put the certs here and uncomment the below lines.
+# Also comment out he proxy api ip and port above.
+c.JupyterHub.ssl_cert = "/etc/letsencrypt/live/tutorial.converged-computing.org/fullchain.pem"
+c.JupyterHub.ssl_key = "/etc/letsencrypt/live/tutorial.converged-computing.org/privkey.pem"
 
 # The public IP of this Hub machine.
 hub_connect_ip = os.environ.get("HUB_CONNECT_IP")
@@ -65,7 +63,7 @@ c.JupyterHub.hub_connect_ip = hub_connect_ip
 # and the password specified below.
 # For production, you would switch to OAuthenticator (e.g., with GitHub or Google).
 c.JupyterHub.authenticator_class = "dummy"
-c.DummyAuthenticator.password = "chicken-nuggers"
+c.DummyAuthenticator.password = "REPLACEME"
 
 # Grant admin rights to a specific user for monitoring and management.
 c.Authenticator.admin_users = {"admin"}
@@ -83,7 +81,7 @@ c.EC2Spawner.start_timeout = 300
 
 # The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-# RADIUSS
+# RADIUSS original build
 c.EC2Spawner.ami = "ami-0628de7c414b901aa"
 
 # Instance type for each user's server.
@@ -93,31 +91,20 @@ c.EC2Spawner.instance_type = "hpc7g.16xlarge"
 # The name of the EC2 key pair for SSH access (for debugging).
 # We should remove this for actual tutorial.
 c.EC2Spawner.key_name = "dinosaur"
+c.Spawner.notebook_dir = '/home/ubuntu'
 
 # Security Group for the spawned instances. Must allow port 8888 ingress
-# from this Hub's security group, and port 22 for your SSH access.
-
-# RADIUSS
+# from this Hub's security group, and port 22 for SSH access.
 c.EC2Spawner.security_group_ids = ["sg-0a3f6eea31df1b19c"]
-# Flux
-# c.EC2Spawner.security_group_ids = ["sg-05a9f952f6610732d"]
 
 # The VPC subnet to launch the instances in. Must have internet access.
-# RADIUSS
 c.EC2Spawner.subnet_id = "subnet-0b80853238a402001"
-# Flux
-# c.EC2Spawner.subnet_id = "subnet-0c8947f74b66f0579"
 
 # The IAM role for the *spawned* user instances. This role can grant permissions
 # to S3, etc., if the tutorial needs it. This is attached to the user VM.
-# RADIUSS
 c.EC2Spawner.iam_instance_profile_arn = (
     "arn:aws:iam::169939313066:instance-profile/JupyterHub-EC2-Manager-Profile"
 )
-# Flux
-# c.EC2Spawner.iam_instance_profile_arn = (
-#    "arn:aws:iam::633731392008:instance-profile/JupyterHub-EC2-Manager-Profile"
-# )
 
 # Custom tags to apply to each spawned EC2 instance for tracking.
 c.EC2Spawner.instance_tags = {
@@ -130,8 +117,7 @@ c.EC2Spawner.instance_tags = {
 # -----------------------------------------------------------------------------
 # Service: Idle Culler
 # -----------------------------------------------------------------------------
-# This service is ESSENTIAL for cost management. It will automatically shut down
-# (and terminate, via our spawner's stop() method) idle user servers.
+# Shut down (and terminate, via our spawner's stop() method) idle user servers.
 
 c.JupyterHub.load_roles = [
     {
@@ -176,8 +162,7 @@ c.JupyterHub.db_url = "sqlite:////srv/jupyterhub/jupyterhub.sqlite"
 # Other Optional Settings
 # -----------------------------------------------------------------------------
 
-# Concurrent spawn limit to prevent runaway costs if many people
-# log in at once. Should be slightly higher than your expected user count.
+# Concurrent spawn limit to prevent runaway costs if many people log in at once
 c.JupyterHub.concurrent_spawn_limit = 120
 
 # Memory limit for the Hub process itself (not the user servers).
