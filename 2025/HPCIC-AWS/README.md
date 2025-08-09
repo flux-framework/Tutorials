@@ -159,6 +159,7 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 --region us-east-1
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8888 --cidr 0.0.0.0/0 --region us-east-1
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8000 --cidr 0.0.0.0/0 --region us-east-1
+aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8001 --cidr 0.0.0.0/0 --region us-east-1
 
 # Flux
 # Created Security Group with ID: sg-05a9f952f6610732d
@@ -224,6 +225,16 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8081 --cidr $MY_IP/32 --region us-east-2
 ```
 
+## Suggestions
+
+- Have usernetes start at startup
+- Why is it starting in the ch4 directory
+- mnist / lammps need explanation
+- other chapters should have the same terminal setup
+- put slides to have component and setup explanation
+- add more intro section to explain kubectl get nodes, flux instance list, get output
+- chapter 2 issue 
+
 #### Start Jupyter
 
 ```bash
@@ -240,6 +251,7 @@ export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169
 ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
 
 # To keep running
+screen
 nohup ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py &
 ```
 
@@ -250,6 +262,7 @@ Note that we will want to generate a certificate. First, install and configure c
 ```bash
 # Certbot!
 # tutorial.flux-framework.org
+sudo systemctl stop nginx
 sudo certbot certonly --standalone
 sudo chown -R ubuntu /etc/letsencrypt/
 ```
@@ -264,7 +277,7 @@ sudo systemctl reload nginx
 
 #### SSL and Snapshots
 
-I originally created the AMI in the wrong account. To share between accounts I needed to take off automatic encryption of snapshots:
+I originally created the AMI in the wrong account. To share between accounts I needed to take off automatic encryption of snapshots. This is `/etc/nginx/sites-enabled/default`
 
 ```
 server {

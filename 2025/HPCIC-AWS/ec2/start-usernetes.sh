@@ -1,8 +1,8 @@
 #!/bin/bash
 make -C /home/ubuntu/usernetes up
-sleep 5
+sleep 10
 make -C /home/ubuntu/usernetes kubeadm-init
-sleep 5
+sleep 10
 make -C /home/ubuntu/usernetes install-flannel
 make -C /home/ubuntu/usernetes kubeconfig
 export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig

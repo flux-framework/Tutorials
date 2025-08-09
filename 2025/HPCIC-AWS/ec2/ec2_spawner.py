@@ -1,7 +1,7 @@
 import asyncio
 import boto3
 from jupyterhub.spawner import Spawner
-from traitlets import Unicode, Dict, List
+from traitlets import Unicode, Dict, List, Bool
 
 # The default AMI disk size is small and we get disk pressure
 # So let's try increasing.
@@ -59,6 +59,13 @@ class EC2Spawner(Spawner):
         help="Tags to apply to the spawned EC2 instance.",
     )
 
+    # keep_instances_on_shutdown = Bool(
+    #    False,
+    #    config=True,
+    #    help="If True, do not terminate EC2 instances when the spawner is stopped. "
+    #         "The instance will persist and be reconnected on next start."
+    #)
+
     # The subnet to launch the instance in
     subnet_id = Unicode(
         "", config=True, help="The subnet ID to launch the instance in."
@@ -106,11 +113,7 @@ sudo chown -R ubuntu /home/ubuntu
 rm -rf ~/.aws
 
 # Someone is going to type this
-sudo ln -s $(which python3) /usr/bin/python
-
-# We need to stop nginx if it's running
-sudo systemctl stop nginx || true
-sudo systemctl disable nginx || true
+# sudo ln -s $(which python3) /usr/bin/python
 
 # Clone repository tutorials, expose tutorial notebooks
 mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static /srv/jupyterlab/static
@@ -118,13 +121,15 @@ git clone --depth 1 -b add-hpcic-2025 https://github.com/flux-framework/Tutorial
 cp -R /tmp/tutorials/2025/HPCIC-AWS/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
-mkdir -p /home/ubuntu/.jupyter/workspaces
-cp /tmp/tutorials/2025/HPCIC-AWS/tutorial/ch4/usernetes-workspace.jupyterlab-workspace /home/ubuntu/.jupyter/workspaces/
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
 cp /tmp/tutorials/2025/HPCIC-AWS/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
 sudo chown -R ubuntu /home/ubuntu/
+
+# We need to stop nginx if it's running
+sudo systemctl stop nginx || true
+sudo systemctl disable nginx || true
 
 # Use sudo to switch to the user and bash to execute the script
 sudo -i -u {user} bash << 'EOF'
@@ -138,7 +143,9 @@ echo "Running as user $(whoami) in $(pwd)"
 
 echo "Starting JupyterLab..."
 
-flux start /usr/local/bin/jupyter-lab \\
+export PYTHONPATH=/usr/lib/python3.12/site-packages:$PYTHONPATH
+
+flux start --test-size=4 /usr/local/bin/jupyter-lab \\
   --ip=0.0.0.0 \\
   --port=8888 \\
   --IdentityProvider.token="" \\
@@ -232,6 +239,13 @@ date
         """
         Stop and terminate the user's EC2 instance.
         """
+        if self.keep_instances_on_shutdown:
+            self.log.info(
+                f"User {self.user.name}: `keep_instances_on_shutdown` is True. "
+                f"NOT terminating instance {self.instance_id}. State will be preserved."
+            )
+            return
+            
         if not self.instance_id:
             self.log.info(f"User {self.user.name}: No instance ID found to stop.")
             return

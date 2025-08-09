@@ -30,23 +30,24 @@ c.JupyterHub.spawner_class = "ec2_spawner.EC2Spawner"
 # Custom login page
 c.JupyterHub.template_paths = ["/srv/jupyterhub/templates"]
 c.JupyterHub.static_paths = ["/srv/jupyterhub/static"]
+c.Spawner.notebook_dir = '/home/ubuntu'
 
 # IP and Port for the Hub to listen on.
+# These are defined WITH and WITHOUT SSL
 # '0.0.0.0' makes it listen on all network interfaces.
+
+# This is the SSL configuration START
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.JupyterHub.hub_port = 8081
+c.JupyterHub.bind_url = 'http://127.0.0.1:8000'
+# This is the SSL configuration END
 
 # The public-facing URL of the proxy.
+# These are commented out for SSL
 # You should have a web server (like NGINX) or a Load Balancer in front
 # of JupyterHub listening on port 80/443 and proxying to this port.
-c.JupyterHub.proxy_api_ip = "127.0.0.1"
-c.JupyterHub.proxy_api_port = 8001  # Default, can be left alone
-
-# When you add ssl, put the certs here and uncomment the below lines.
-# Also comment out he proxy api ip and port above.
-#c.JupyterHub.ssl_cert = "/etc/letsencrypt/live/tutorial.flux-framework.org/fullchain.pem"
-#c.JupyterHub.ssl_key = "/etc/letsencrypt/live/tutorial.flux-framework.org/privkey.pem"
-# c.JupyterHub.bind_url = 'http://127.0.0.1:8000'
+# c.JupyterHub.proxy_api_ip = "127.0.0.1"
+# c.JupyterHub.proxy_api_port = 8001  # Default, can be left alone
 
 # The public IP of this Hub machine.
 hub_connect_ip = os.environ.get("HUB_CONNECT_IP")
