@@ -44,8 +44,12 @@ c.JupyterHub.internal_ssl = False
 
 # When you add ssl, put the certs here and uncomment the below lines.
 # Also comment out he proxy api ip and port above.
-c.JupyterHub.ssl_cert = "/etc/letsencrypt/live/tutorial.converged-computing.org/fullchain.pem"
-c.JupyterHub.ssl_key = "/etc/letsencrypt/live/tutorial.converged-computing.org/privkey.pem"
+c.JupyterHub.ssl_cert = (
+    "/etc/letsencrypt/live/tutorial.converged-computing.org/fullchain.pem"
+)
+c.JupyterHub.ssl_key = (
+    "/etc/letsencrypt/live/tutorial.converged-computing.org/privkey.pem"
+)
 
 # The public IP of this Hub machine.
 hub_connect_ip = os.environ.get("HUB_CONNECT_IP")
@@ -91,7 +95,7 @@ c.EC2Spawner.instance_type = "hpc7g.16xlarge"
 # The name of the EC2 key pair for SSH access (for debugging).
 # We should remove this for actual tutorial.
 c.EC2Spawner.key_name = "dinosaur"
-c.Spawner.notebook_dir = '/home/ubuntu'
+c.Spawner.notebook_dir = "/home/ubuntu"
 
 # Security Group for the spawned instances. Must allow port 8888 ingress
 # from this Hub's security group, and port 22 for SSH access.

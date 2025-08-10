@@ -1,7 +1,8 @@
 import asyncio
+
 import boto3
 from jupyterhub.spawner import Spawner
-from traitlets import Unicode, Dict, List, Bool
+from traitlets import Bool, Dict, List, Unicode
 
 # The default AMI disk size is small and we get disk pressure
 # So let's try increasing.
@@ -10,19 +11,21 @@ desired_root_volume_size_gb = 256
 # Define the block device mappings - note that lsblk will show /dev/nvme0n1 but it's this one
 block_device_mappings = [
     {
-        'DeviceName': '/dev/sda1',
-        'Ebs': {
-            'VolumeSize': desired_root_volume_size_gb,
-            'DeleteOnTermination': True,
-            'VolumeType': 'gp3'
-        }
+        "DeviceName": "/dev/sda1",
+        "Ebs": {
+            "VolumeSize": desired_root_volume_size_gb,
+            "DeleteOnTermination": True,
+            "VolumeType": "gp3",
+        },
     }
 ]
+
 
 class EC2Spawner(Spawner):
     """
     A Spawner for JupyterHub that launches a user's server on a new EC2 instance.
     """
+
     ami = Unicode(
         "ami-06cebbfb446ee0ceb",
         config=True,
@@ -30,7 +33,9 @@ class EC2Spawner(Spawner):
     )
 
     # The EC2 instance type
-    instance_type = Unicode("hpc7g.16xlarge", config=True, help="The EC2 instance type.")
+    instance_type = Unicode(
+        "hpc7g.16xlarge", config=True, help="The EC2 instance type."
+    )
 
     # Always need the region
     region = Unicode("us-east-1", config=True, help="Region to deploy instance to")
@@ -137,10 +142,13 @@ echo "Running as user $(whoami) in $(pwd)"
 echo "Starting JupyterLab..."
 
 export PYTHONPATH=/usr/lib/python3.12/site-packages:$PYTHONPATH
+cd /home/ubuntu
 
 flux start --test-size=4 /usr/local/bin/jupyter-lab \\
   --ip=0.0.0.0 \\
   --port=8888 \\
+  --notebook-dir=/home/ubuntu \\
+  --preferred-dir=/home/ubuntu \\
   --IdentityProvider.token="" \\
   --ServerApp.password="" \\
   --ServerApp.base_url=$JUPYTERHUB_SERVICE_PREFIX \\

@@ -225,15 +225,7 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8081 --cidr $MY_IP/32 --region us-east-2
 ```
 
-## Suggestions
-
-- Have usernetes start at startup?
-- Why is it starting in the ch4 directory
-- mnist / lammps need explanation
-- other chapters should have the same terminal setup
-- put slides to have component and setup explanation
-- add more intro section to explain kubectl get nodes, flux instance list, get output
-- chapter 2 issue 
+- submit slides to IM
 
 #### Start Jupyter
 
@@ -245,7 +237,7 @@ export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169
 # Kolomogorov
 
 # Development (no culling)
-~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config_no_culler.py
+# ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config_no_culler.py
 
 # With culling
 ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py
