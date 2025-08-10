@@ -129,6 +129,10 @@ sudo chown -R ubuntu /home/ubuntu/
 sudo systemctl stop nginx || true
 sudo systemctl disable nginx || true
 
+sudo rm -rf /home/ubuntu/.jupyter/lab/workspaces
+sudo mkdir -p /home/ubuntu/.jupyter/lab/workspaces
+sudo chown -R ubuntu /home/ubuntu
+
 # Use sudo to switch to the user and bash to execute the script
 sudo -i -u {user} bash << 'EOF'
 #!/bin/bash
