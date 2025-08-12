@@ -1,4 +1,10 @@
 #!/bin/bash
+
+cd /home/ubuntu/usernetes
+docker rmi usernetes_node
+docker build --no-cache -t usernetes_node .
+cd -
+
 make -C /home/ubuntu/usernetes up
 sleep 10
 make -C /home/ubuntu/usernetes kubeadm-init
