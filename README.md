@@ -35,3 +35,7 @@ The chapters are also interspersed with more design or "how does it work" type c
 ![img/flux-tree.png](img/flux-tree.png)
 ![img/submit.png](img/submit.png)
 
+#### Release
+
+SPDX-License-Identifier: LGPL-3.0
+
