@@ -1,0 +1,12 @@
+apiVersion: flux-framework.org/v1alpha2
+kind: MiniCluster
+metadata:
+  name: pytorch
+spec:
+  size: 2
+  interactive: true
+  flux:
+    container:
+      image: ghcr.io/converged-computing/flux-view-ubuntu:tag-jammy
+  containers:
+    - image: ghcr.io/flux-framework/tutorials:flux-operator-pytorch
