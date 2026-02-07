@@ -1,0 +1,14 @@
+FROM nvcr.io/nvidia/pytorch:24.02-py3
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /code
+COPY ./flux-operator/requirements.txt /code/requirements.txt
+RUN pip install flux-mcp
+COPY ./flux-operator/distributed_flux.py /code/distributed_flux.py
+ENV LD_LIBRARY_PATH=/opt/hpcx/ompi/lib:/opt/hpcx/mxm/lib:/opt/hpcx/ucx/lib:$LD_LIBRARY_PATH
+ENV PATH=/opt/hpcx/ompi/bin:$PATH
+ENV SHELL=/usr/bin/bash
