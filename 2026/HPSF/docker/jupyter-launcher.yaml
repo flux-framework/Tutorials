@@ -6,7 +6,7 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/ch1/01_flux_tutorial.ipynb
+        path: ./ch1/01_flux_tutorial.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 
@@ -18,7 +18,7 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/ch2/02_flux_framework.ipynb
+        path: ./ch2/02_flux_framework.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 
@@ -30,7 +30,7 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/ch3/03_flux_tutorial.ipynb
+        path: ./ch3/03_flux_tutorial.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 
@@ -42,7 +42,7 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/ch4/04_flux_framework_usernetes.ipynb
+        path: ./ch4/04_flux_framework_usernetes.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 

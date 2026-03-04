@@ -4,9 +4,22 @@ metadata:
   name: pytorch
 spec:
   size: 2
-  interactive: true
   flux:
     container:
       image: ghcr.io/converged-computing/flux-view-ubuntu:tag-jammy
   containers:
-    - image: ghcr.io/flux-framework/tutorials:flux-operator-pytorch
+    - image: vanessa/hpsf-flux:2026-flux-operator-pytorch-5
+      launcher: true
+      command: mcpserver start --port 8089 --host 0.0.0.0 -t http --config /code/mcpserver.yaml
+      environment:
+        FI_PROVIDER: "efa"
+        FI_EFA_FORK_SAFE: "1"
+      volumes:
+        shared-memory:
+          emptyDir: true
+          emptyDirMedium: "memory"
+      resources:
+        limits:
+          vpc.amazonaws.com/efa: 1
+        requests:
+          vpc.amazonaws.com/efa: 1

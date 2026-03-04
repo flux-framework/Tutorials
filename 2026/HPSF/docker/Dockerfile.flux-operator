@@ -7,8 +7,16 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /code
 COPY ./flux-operator/requirements.txt /code/requirements.txt
-RUN pip install flux-mcp
+RUN pip install hpc-mcp mcp-serve
+RUN git clone -b check-malformed-response-gemini https://github.com/converged-computing/fractale /code/fractale && python3 -m pip install -e /code/fractale[all]
+RUN pip install sqlalchemy
+RUN git clone -b add/archive-exec https://github.com/converged-computing/flux-mcp /code/flux-mcp && python3 -m pip install -e /code/flux-mcp[all] && echo helloo
 COPY ./flux-operator/distributed_flux.py /code/distributed_flux.py
+COPY ./flux-operator/distributed_flux_hello_world.py /code/distributed_flux_hello_world.py
+COPY ./flux-operator/mcpserver.yaml /code/mcpserver.yaml
 ENV LD_LIBRARY_PATH=/opt/hpcx/ompi/lib:/opt/hpcx/mxm/lib:/opt/hpcx/ucx/lib:$LD_LIBRARY_PATH
 ENV PATH=/opt/hpcx/ompi/bin:$PATH
 ENV SHELL=/usr/bin/bash
+# ENV PYTHONPATH=/usr/lib/python3.12/site-packages
+# ENV PATH=$PATH:/opt/spack/bin
+# RUN python3 -m pip install sqlalchemy rpds-py --break-system-packages

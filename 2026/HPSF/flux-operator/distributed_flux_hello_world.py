@@ -5,7 +5,7 @@ import torch.distributed as dist
 
 def run():
     # Don't set MASTER_ADDR or MASTER_PORT environment variables.
-    # Let MPI handle the handshake entirely
+    # Let MPI handle the handshake
     if not dist.is_initialized():
         dist.init_process_group(backend="mpi")
 
