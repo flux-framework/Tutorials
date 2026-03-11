@@ -79,7 +79,7 @@ def train():
     dist.barrier()
 
     trainset = torchvision.datasets.CIFAR10(
-        root=args.data_path, train=True, download=True transform=transform
+        root=args.data_path, train=True, download=True, transform=transform
     )
 
     sampler = DistributedSampler(trainset, num_replicas=world_size, rank=rank)

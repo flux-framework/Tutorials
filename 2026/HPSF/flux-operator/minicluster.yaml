@@ -8,7 +8,7 @@ spec:
     container:
       image: ghcr.io/converged-computing/flux-view-ubuntu:tag-jammy
   containers:
-    - image: vanessa/hpsf-flux:2026-flux-operator-pytorch-5
+    - image: vanessa/hpsf-flux:2026-flux-operator-pytorch-11
       launcher: true
       command: mcpserver start --port 8089 --host 0.0.0.0 -t http --config /code/mcpserver.yaml
       environment:

@@ -18,7 +18,13 @@ Build the tutorial images (these are also pushed to GitHub packages)
 ```bash
 docker build -f ./docker/Dockerfile -t vanessa/hpsf-flux:2026-jupyter .
 docker build -f ./docker/Dockerfile.ml -t vanessa/hpsf-flux:2026-ml .
-docker build -f ./docker/Dockerfile.flux-operator -t vanessa/hpsf-flux:2026-flux-operator-pytorch .
+docker build -f ./docker/Dockerfile.flux-operator -t vanessa/hpsf-flux:2026-flux-operator-pytorch-9 .
+```
+
+Or pull:
+
+```bash
+docker pull vanessa/hpsf-flux:2026-jupyter
 ```
 
 ## 1. Introduction to Flux 
@@ -82,6 +88,11 @@ flux run -N 2 --exclusive python distributed_flux.py
 ```
 
 We could also put `-n` for the number of tasks (processes) per node, but exclusive will ask for all of them.
+Here is using an agent:
+
+```bash
+fractale agent -r ./fractale/examples/registry/analysis-agents.yaml result_parse tell me a joke and parse the result log for the punchline.
+```
 
 Now let's ask the agent to optimize the run for us. Note that we are adding an optimize agent on the fly (`-r` == `--registry`)
 
@@ -92,18 +103,46 @@ fractale agent -r ./fractale/examples/registry/analysis-agents.yaml optimize Dis
 ## 3. Kubeflow and Flux
 
 The Kubeflow and Flux example can use the same cluster, but we add Kubeflow.
+First, install the Kubeflow Trainer.
 
 ```bash
-git clone -b flux-framework-plugin https://github.com/converged-computing/trainer
-cd trainer
+kubectl apply --server-side -k "https://github.com/kubeflow/trainer.git/manifests/overlays/manager?ref=master"
+```
 
-make generate
-make manifests
-docker build -t ghcr.io/kubeflow/trainer/trainer-controller-manager -f ./cmd/trainer-controller-manager/Dockerfile .
-kind load docker-image ghcr.io/kubeflow/trainer/trainer-controller-manager
-kubectl apply --server-side -k ./manifests/overlays/manager
-sleep 20
-kubectl apply -f examples/flux/flux-runtime.yaml
-sleep 5
-kubectl apply -f examples/flux/lammps-train-job.yaml
+This LAMMPS example assumes two small nodes. You can retrieve and alter the LAMMPS manifest to increase the problem size if you have more than that. Apply the `ClusterTrainingRuntime` and the `TrainJob`:
+
+```bash
+kubectl apply --server-side -f https://raw.githubusercontent.com/kubeflow/trainer/refs/heads/master/examples/flux/flux-runtime.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubeflow/trainer/refs/heads/master/examples/flux/lammps-train-job.yaml
+```
+
+If you get error messages about the webhook, you need to wait a little longer.
+
+### 1. Monitor the Job
+
+Watch for the pods to be created, and wait for them to be `Running`.
+
+```bash
+kubectl get pods -w
+```
+
+### 2. Check Logs
+
+You'll see the InitContainer, and then PodInitializing is usually a container pulling.
+To see the Flux broker initialization and the output of the LAMMPS job, check the logs of the lead broker (pod index `0-0`):
+
+```bash
+kubectl logs lammps-flux-node-0-0-mvjsf -c node -f
+```
+
+You can look at the second pod to see the follower broker bootstrap with the lead broker, and then cleanup when LAMMPS is done running.
+
+```bash
+kubectl logs lammps-flux-node-0-1-glj22 -c node -f
+```
+
+When you are done:
+
+```bash
+eksctl delete cluster --config-file ./eks-config.yaml  --wait
 ```
