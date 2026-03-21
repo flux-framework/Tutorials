@@ -37,12 +37,26 @@ docker run --rm -it  -v /var/run/docker.sock:/var/run/docker.sock --name jupyter
 
 ## 2. The Flux Operator with Agents
 
-The Flux Operator and MCP example is a Flux Framework MiniCluster. Either create a cloud (or have) a Kubernetes cluster, e.g:
+The Flux Operator and MCP example is a Flux Framework MiniCluster. Either create a cloud (or have) a Kubernetes cluster. We are going to create two clusters:
+
+Nodes that support EFA and GPU:
+
+- P5 Instances: High-performance H100 GPU instances that support up to 3,200 Gbps network bandwidth and EFA.
+- P4d/P4de Instances: A100 GPU instances commonly used for distributed training with EFA.
+- G6e Instances: Equipped with NVIDIA L40S GPUs, suitable for training and inference.
+- Trn1/Trn2 Instances
 
 ```bash
 eksctl create cluster --config-file ./eks-config.yaml 
+# or
+eksctl create cluster --config-file ./eks-config-hpc8a.yaml 
+eksctl create cluster --config-file ./eks-config-gpu.yaml
 aws eks update-kubeconfig --region us-east-2 --name hpsf-flux
 ```
+- vCPUs	96
+- Memory (GiB)	384
+- Memory per vCPU (GiB)	4
+- Physical Processor AMD EPYC 7R13 Processor
 
 or create one with kind:
 
@@ -87,11 +101,10 @@ flux run -N 2 --exclusive python distributed_flux_hello_world.py
 flux run -N 2 --exclusive python distributed_flux.py 
 ```
 
-We could also put `-n` for the number of tasks (processes) per node, but exclusive will ask for all of them.
-Here is using an agent:
+We could also put `-n` for the number of tasks (processes) per node, but exclusive will ask for all of them. Here is using an agent. You will need to export `GEMINI_TOKEN`.
 
 ```bash
-fractale agent -r ./fractale/examples/registry/analysis-agents.yaml result_parse tell me a joke and parse the result log for the punchline.
+fractale agent -r ./fractale/examples/registry/parser-agents.yaml result_parse tell me a joke and parse the result log for the punchline.
 ```
 
 Now let's ask the agent to optimize the run for us. Note that we are adding an optimize agent on the fly (`-r` == `--registry`)
@@ -140,9 +153,40 @@ You can look at the second pod to see the follower broker bootstrap with the lea
 ```bash
 kubectl logs lammps-flux-node-0-1-glj22 -c node -f
 ```
+## 4. GPU and Flux
+
+Now let's switch to the other cluster.
+
+```bash
+aws eks update-kubeconfig --region us-east-2 --name gpu-cluster
+```
+
+Install the Flux Operator
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/flux-framework/flux-operator/refs/heads/main/examples/dist/flux-operator.yaml
+```
+
+Create the minicluster:
+
+```bash
+kubectl apply -f ./flux-operator/minicluster-gpu.yaml
+flux proxy local:///mnt/flux/config/run/flux/local bash
+flux run --env CUDA_VISIBLE_DEVICES=0 -o cpu-affinity=per-task -N2 -n 2 -g 1 lmp -k on g 1 -sf kk -pk kokkos cuda/aware off newton on neigh half -in in.reaxff.hns -v x 8 -v y 8 -v z 8 -in in.reaxff.hns -nocite  
+```
+
+Install the kubeflow trainer and flux runtime
+
+```bash
+kubectl apply -f flux-runtime.yaml 
+clustertrainingruntime.trainer.kubeflow.org/flux-runtime created
+kubectl apply -f flux-operator/lammps-train-job-gpu.yaml 
+trainjob.trainer.kubeflow.org/lammps-flux created
+```
 
 When you are done:
 
 ```bash
 eksctl delete cluster --config-file ./eks-config.yaml  --wait
+kubectl delete all --all --all-namespaces 
 ```

@@ -2,7 +2,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
   region: us-east-2
-  name: hpsf-flux
+  name: hpsf-flux-hpc6a
   
 availabilityZones: ["us-east-2b", "us-east-2c"]
 managedNodeGroups:

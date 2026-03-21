@@ -1,0 +1,12 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: gpu-cluster
+  region: us-east-2
+
+nodeGroups:
+  - name: hpsf-gpu-workers
+    instanceType: g4dn.xlarge
+    minSize: 2
+    maxSize: 2
+    desiredCapacity: 2
