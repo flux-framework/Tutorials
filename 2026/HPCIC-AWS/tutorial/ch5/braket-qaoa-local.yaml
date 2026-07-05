@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qaoa-local
+  labels:
+    app: quantum-braket
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: quantum-braket
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: qaoa
+          image: python:3.11-slim
+          # Runs the SAME qaoa_maxcut.py on the LOCAL Braket simulator inside the
+          # pod. There are no AWS calls and no credentials anywhere in this Job --
+          # the script is delivered via the 'qaoa-script' ConfigMap (created from
+          # scripts/qaoa_maxcut.py) and mounted read-only at /app.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              pip install --quiet --no-cache-dir amazon-braket-sdk scipy
+              python3 /app/qaoa_maxcut.py --backend local --nodes 6 --shots 100 --max-iter 5
+          env:
+            - name: BACKEND
+              value: "local"
+          volumeMounts:
+            - name: qaoa-script
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: qaoa-script
+          configMap:
+            name: qaoa-script
