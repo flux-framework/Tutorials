@@ -1,0 +1,23 @@
+
+apiVersion: flux-framework.org/v1alpha2
+kind: MiniCluster
+metadata:
+  name: mlrunner
+spec:
+  size: 1
+  # Setting tasks to 0 uses what is found on the node (avoiding the flux default of 1)
+  tasks: 0
+  logging:
+    quiet: true
+
+  flux:
+    container: 
+      image: ghcr.io/converged-computing/flux-view-rocky:arm-9
+
+  containers:
+   - image: ghcr.io/converged-computing/sc25-flux-eks:mlrunner-arm
+     command: /root/.cargo/bin/pixi run --manifest-path /pixi-env/pixi.toml bash /entrypoint.sh
+     volumes:
+        shared-memory:
+          emptyDir: true
+          emptyDirMedium: "memory"
