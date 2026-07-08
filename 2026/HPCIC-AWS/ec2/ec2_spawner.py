@@ -144,6 +144,10 @@ echo "Running as user $(whoami) in $(pwd)"
 
 echo "Starting JupyterLab..."
 
+# This is for usernetes ports to not freak out to use 80
+sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
+sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
+
 export PYTHONPATH=/usr/lib/python3.12/site-packages
 cd /home/ubuntu
 

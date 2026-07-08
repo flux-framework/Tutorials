@@ -296,16 +296,12 @@ aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8081 --cidr $MY_IP/32 --region us-east-2
 ```
 
-- submit slides to IM
-
 #### Start Jupyter
 
 ```bash
 sudo chown -R ubuntu /srv/jupyterhub/
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 export HUB_CONNECT_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/local-ipv4)
-
-# Kolomogorov
 
 # Development (no culling)
 # ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config_no_culler.py
@@ -322,7 +318,7 @@ nohup ~/.local/bin/jupyterhub -f /srv/jupyterhub/jupyterhub_config.py &
 
 Note that we will want to generate a certificate. First, install and configure certbot.
 
-```bash
+```bashlets
 # Certbot!
 # tutorial.flux-framework.org
 sudo systemctl stop nginx
@@ -332,17 +328,7 @@ sudo chown -R ubuntu /etc/letsencrypt/
 
 Then add this content to `/etc/nginx/sites-available/default`
 
-And restart:
-
-```bash
-sudo systemctl reload nginx
-```
-
-#### SSL and Snapshots
-
-I originally created the AMI in the wrong account. To share between accounts I needed to take off automatic encryption of snapshots. This is `/etc/nginx/sites-enabled/default`
-
-```
+```console
 server {
     listen 80;
     server_name tutorial.flux-framework.org;
@@ -365,18 +351,18 @@ server {
 
         # WebSocket support
         proxy_http_version 1.1;
-	#proxy_set_header Upgrade $websocket_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
 }
 ```
 
-And then save a new one, getting the volume from the name.
+And restart:
 
 ```bash
-# Create the snapshot
-aws ec2 create-snapshot --volume-id vol-0db075348c995f4c1 --description "HPCIC Flux Tutorial 2025 JupyterHub EC2 Spawner (save August 5, 2025)" --region us-east-2
+sudo systemctl start nginx
 
-# and the image
-aws ec2 register-image --name "hpcic-flux-tutorial-2025" --description "HPCIC Flux Framework Tutorial (JupyterHub Spawner EC2) 2025" --root-device-name /dev/sda1 --block-device-mappings "DeviceName=/dev/sda1,Ebs={SnapshotId=snap-0786282c76b84f55e}" --region us-east-2
+# If already started...
+sudo systemctl reload nginx
 ```
+
