@@ -44,12 +44,13 @@ c.JupyterHub.internal_ssl = False
 
 # When you add ssl, put the certs here and uncomment the below lines.
 # Also comment out he proxy api ip and port above.
-c.JupyterHub.ssl_cert = (
-    "/etc/letsencrypt/live/tutorial.flux-framework.org/fullchain.pem"
-)
-c.JupyterHub.ssl_key = (
-    "/etc/letsencrypt/live/tutorial.flux-framework.org/privkey.pem"
-)
+# IMPORTANT: if you use nginx (recommended) with letsencrypt you do not need this.
+# c.JupyterHub.ssl_cert = (
+#    "/etc/letsencrypt/live/tutorial.flux-framework.org/fullchain.pem"
+# )
+#c.JupyterHub.ssl_key = (
+#    "/etc/letsencrypt/live/tutorial.flux-framework.org/privkey.pem"
+#)
 
 # The public IP of this Hub machine.
 hub_connect_ip = os.environ.get("HUB_CONNECT_IP")
