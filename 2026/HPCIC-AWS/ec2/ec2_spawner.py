@@ -148,7 +148,7 @@ echo "Starting JupyterLab..."
 sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
 sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
 
-export PYTHONPATH=/usr/lib/python3.12/site-packages
+export PYTHONPATH=/usr/lib/python3.14/site-packages
 cd /home/ubuntu
 
 flux start --test-size=4 /usr/local/bin/jupyter-lab \\

@@ -121,7 +121,14 @@ git clone --recurse-submodules https://github.com/openpmix/prrte.git && \
     ./autogen.pl && \
     ./configure --prefix=/opt/prrte && \
     make -j && sudo make -j all install
- 
+
+git clone https://github.com/openpmix/openpmix.git && \
+cd openpmix && \
+git checkout fefaed568f33bf86f28afb6e45237f1ec5e4de93 && \
+./autogen.pl && \
+./configure --prefix=/usr --disable-static && sudo make -j 4 install && \
+sudo ldconfig
+
 export LANG=C.UTF-8
 export FLUX_SECURITY_VERSION=0.15.0
 
@@ -201,9 +208,9 @@ export VERSION="1.2.0" && \
 # Additional packages
 sudo apt-get update && sudo apt-get install -y ibverbs-utils libibverbs-dev libibverbs1 && sudo apt-get clean
 
-sudo curl -O https://efa-installer.amazonaws.com/aws-efa-installer-1.42.0.tar.gz && \
-    tar -xzvf aws-efa-installer-1.42.0.tar.gz && \
-    rm -rf aws-efa-installer-1.42.0.tar.gz && \
+sudo curl -O https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz && \
+    tar -xzvf aws-efa-installer-latest.tar.gz && \
+    rm -rf aws-efa-installer-latest.tar.gz && \
     cd aws-efa-installer && \
     sudo ./efa_installer.sh --skip-kmod --yes
 
