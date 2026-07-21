@@ -289,6 +289,13 @@ sudo mkdir -p /srv/jupyterhub
 # Our custom login page needs to be in ./templates there too
 ```
 
+For the login page, you can also replace the default:
+
+```bash
+cp /home/ubuntu/.local/share/jupyterhub/templates/login.html ./old-login.html
+cp login.html /home/ubuntu/.local/share/jupyterhub/templates/login.html
+```
+
 I added access for my ip address:
 
 ```bash
