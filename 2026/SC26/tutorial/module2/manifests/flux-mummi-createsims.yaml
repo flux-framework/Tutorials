@@ -1,0 +1,22 @@
+apiVersion: flux-framework.org/v1alpha2
+kind: MiniCluster
+metadata:
+  name: createsims
+spec:
+  size: 1
+  # Setting tasks to 0 uses what is found on the node.
+  tasks: 0
+  logging:
+    quiet: true
+
+  flux:
+    container: 
+      image: ghcr.io/converged-computing/flux-view-rocky:arm-9
+      
+  containers:
+   - image: ghcr.io/converged-computing/sc25-flux-eks:createsims-arm
+     command: bash /entrypoint.sh
+     volumes:
+        shared-memory:
+          emptyDir: true
+          emptyDirMedium: "memory"

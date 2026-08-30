@@ -1,0 +1,3 @@
+qiskit
+qiskit-aer
+scipy

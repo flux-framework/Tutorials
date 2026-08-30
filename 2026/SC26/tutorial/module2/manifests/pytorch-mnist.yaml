@@ -1,0 +1,14 @@
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: pytorch-simple
+spec:
+  runtimeRef:
+    name: torch-distributed
+  trainer:
+    numNodes: 2
+    image: kubeflowkatib/pytorch-mnist-cpu:v1beta1-a524f33
+    command:
+      - "python3"
+      - "/opt/pytorch-mnist/mnist.py"
+      - "--epochs=1"

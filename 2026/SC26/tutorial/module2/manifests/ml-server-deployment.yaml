@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-server
+spec:
+  selector:
+    matchLabels:
+      run: ml-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: ml-service
+    spec:
+      containers:
+      - name: ml-service
+        image: ghcr.io/converged-computing/lammps-stream-ml:server-arm
+        env:
+          - name: SHELVE_SECRET_KEY
+            value: noodles
+          - name: JWT_SECRET_KEY
+            value: noodles
+          - name: SECRET_KEY
+            value: "qbg(sz#n+4ji)(16xrn!gti%^ig#a5ni!sxg18nv7sv*n#h*7%"
+        # We don't use hostPort here because we are using nginx ingress controller
+        ports:
+        - containerPort: 8080
+---      
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-service-endpoint  # A name for the service
+spec:
+  selector:
+    run: ml-service  # This MUST match the labels on your pod
+  ports:
+    - protocol: TCP
+      # The port the service will listen on
+      port: 80
+      # The port to forward traffic to on the pod
+      targetPort: 8080
+---   
+# Ingress exposes the service to you
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ml-server-ingress
+spec:
+  # This line is important for the NGINX ingress controller
+  ingressClassName: "nginx"
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            # Must match the Service name
+            name: ml-service-endpoint
+            port:
+              # Must match the Service's port
+              number: 80
+
+    
