@@ -1,0 +1,155 @@
+- title: "Module 1.1: Flux Foundations"
+  description: Submission, batch jobs, the hierarchy, and the oven packing puzzle
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module1/01_flux_foundations.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 1.2: The Flux Python SDK"
+  description: Submitting and watching jobs programmatically. The one notebook with runnable cells.
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module1/02_flux_python_sdk.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 1.3: Instances, Internals, and Plugins"
+  description: The plumbing under the porcelain, then write your own job shell plugin
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module1/03_flux_instances_and_plugins.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 2.1: Usernetes"
+  description: Bring up a user-space Kubernetes control plane inside a Flux job
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module2/01_usernetes.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 2.2: The Flux Operator"
+  description: Install the operator into Usernetes and run LAMMPS as a MiniCluster
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module2/02_flux_operator.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 2.3: Kubeflow Trainer"
+  description: AI/ML and HPC simulation from one control plane
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module2/03_kubeflow_trainer.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 2.4: Quantum Simulation Under Flux"
+  description: A hybrid quantum-classical workload on a local simulator
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module2/04_quantum_local.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: "Module 3: Wrap Up and Resources"
+  description: Lightning talks, trivia, and where to go next
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module3/01_wrapup_and_resources.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: Flux Framework Portal
+  description: Flux Framework portal for projects, releases, and publication.
+  source: https://flux-framework.org/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Documentation
+  source: https://flux-framework.readthedocs.io/en/latest/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Cheat Sheet
+  source: https://flux-framework.org/cheat-sheet/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Shell Plugin Reference
+  source: https://flux-framework.readthedocs.io/projects/flux-core/en/latest/man5/flux-shell-initrc.html
+  description: the initrc API you need for the Module 1 plugin workshop
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Glossary of Terms
+  source: https://flux-framework.readthedocs.io/en/latest/glossary.html
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Comics
+  source: https://flux-framework.readthedocs.io/en/latest/comics/fluxonomicon.html
+  description: come and meet FluxBird - the pink bird who knows things!
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Learning Guide
+  source: https://flux-framework.readthedocs.io/en/latest/guides/learning_guide.html
+  description: learn about what Flux does, how it works, and real research applications
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Getting Started with Flux and Go
+  source: https://converged-computing.github.io/flux-go
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Getting Started with Flux in C
+  source: https://converged-computing.github.io/flux-c-examples/
+  description: ...looking for contributors!
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
