@@ -1,0 +1,8 @@
+# Used for the DYAD notebook
+Pygments
+build
+ipykernel
+jsonschema
+cffi
+ply
+pyyaml

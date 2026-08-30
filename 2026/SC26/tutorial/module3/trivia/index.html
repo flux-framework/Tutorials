@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Dish Trivia &mdash; Flux at SC26</title>
+<style>
+  :root {
+    --deep: #036291;
+    --light: #91c2d8;
+    --pale: #dcecf4;
+    --crust: #d9a441;
+    --ink: #06293d;
+    --ok: #4a7c2f;
+    --no: #a13d2f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+    color: var(--ink);
+    background: var(--pale);
+  }
+  header {
+    background: linear-gradient(90deg, var(--deep) 0%, var(--light) 100%);
+    border-left: 12px solid var(--crust);
+    padding: 22px 28px;
+    color: #fff;
+  }
+  header h1 { margin: 0; font-size: 30px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--pale); font-size: 15px; }
+  main { max-width: 940px; margin: 0 auto; padding: 24px 20px 80px; }
+  .panel {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(6,41,61,.12);
+  }
+  .teams { display: flex; flex-wrap: wrap; gap: 12px; }
+  .team {
+    flex: 1 1 160px;
+    border: 2px solid var(--light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .team.lead { border-color: var(--crust); }
+  .team-name {
+    font-weight: 600;
+    border: none;
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    color: var(--ink);
+    background: transparent;
+  }
+  .team-name:focus { outline: 2px solid var(--light); border-radius: 4px; }
+  .score { font-size: 34px; font-weight: 700; color: var(--deep); }
+  .team button {
+    font: inherit; font-size: 14px; cursor: pointer;
+    border: 1px solid var(--light); background: var(--pale);
+    color: var(--ink); border-radius: 6px; padding: 3px 12px; margin: 0 2px;
+  }
+  .team button:hover { background: var(--light); }
+  .roundbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .roundbar button {
+    font: inherit; font-size: 15px; cursor: pointer;
+    border: 2px solid var(--deep); background: #fff; color: var(--deep);
+    border-radius: 999px; padding: 6px 18px;
+  }
+  .roundbar button[aria-current="true"] { background: var(--deep); color: #fff; }
+  .qmeta { color: var(--deep); font-weight: 600; letter-spacing: .06em; font-size: 13px; text-transform: uppercase; }
+  .prompt { font-size: 26px; font-weight: 600; margin: 8px 0 18px; }
+  .prompt code { background: var(--pale); padding: 2px 8px; border-radius: 5px; font-size: 24px; }
+  .options { display: grid; gap: 10px; }
+  .options button {
+    font: inherit; text-align: left; cursor: pointer;
+    border: 2px solid var(--light); background: #fff; color: var(--ink);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .options button:hover:not([disabled]) { border-color: var(--deep); }
+  .options button.right { border-color: var(--ok); background: #eef7e8; }
+  .options button.wrong { border-color: var(--no); background: #fbeeec; }
+  .reveal { margin-top: 16px; padding: 14px 18px; border-left: 6px solid var(--crust); background: var(--pale); }
+  .reveal[hidden] { display: none; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+  .nav button {
+    font: inherit; cursor: pointer; border: none; border-radius: 8px;
+    padding: 10px 22px; background: var(--deep); color: #fff; font-weight: 600;
+  }
+  .nav button[disabled] { opacity: .35; cursor: default; }
+  .joke { background: var(--crust); color: var(--ink); }
+  .joke .prompt { font-size: 24px; font-weight: 500; }
+  .joke .punch { font-size: 28px; font-weight: 700; margin-top: 14px; }
+  footer { text-align: center; color: var(--deep); font-size: 14px; padding: 0 20px 40px; }
+  footer a { color: var(--deep); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#127829; Deep Dish Trivia</h1>
+  <p>Flux Framework tutorial &middot; SC26 &middot; Chicago</p>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="teams" id="teams"></div>
+  </div>
+
+  <div class="roundbar" id="roundbar"></div>
+
+  <div class="panel" id="card"></div>
+
+  <div class="nav">
+    <button id="prev">&larr; Back</button>
+    <span id="progress"></span>
+    <button id="next">Next &rarr;</button>
+  </div>
+</main>
+
+<footer>
+  Answers checked against the
+  <a href="https://flux-framework.readthedocs.io/projects/flux-core/en/latest/man1/index.html">flux-core man page index</a>.
+  Scores are kept in this browser tab only.
+</footer>
+
+<script>
+const TEAMS = ["Team Sausage", "Team Giardiniera", "Team Mozzarella", "Team Anchovy"];
+
+const ROUNDS = [
+  {
+    name: "Is this a real flux subcommand?",
+    items: [
+      { q: "<code>flux housekeeping</code>", opts: ["Real", "Made up"], a: 0,
+        why: "Real. It manages the post-job cleanup scripts an administrator can configure to run on nodes before they are released back to the scheduler." },
+      { q: "<code>flux knead</code>", opts: ["Real", "Made up"], a: 1,
+        why: "Made up, sadly." },
+      { q: "<code>flux sproc</code>", opts: ["Real", "Made up"], a: 0,
+        why: "Real, and it surprises almost everyone. It is in section 1 of the man pages alongside flux-pgrep and flux-ping." },
+      { q: "<code>flux fsck</code>", opts: ["Real", "Made up"], a: 0,
+        why: "Real. Flux has a content store, so of course it has a checker for it." },
+      { q: "<code>flux reheat</code>", opts: ["Real", "Made up"], a: 1,
+        why: "Made up. You are thinking of <code>flux restore</code>, which is real." },
+      { q: "<code>flux modprobe</code>", opts: ["Real", "Made up"], a: 0,
+        why: "Real. Not the Linux one; this is Flux's own module loading front end, next to flux-module." },
+      { q: "<code>flux garnish</code>", opts: ["Real", "Made up"], a: 1,
+        why: "Made up. <code>flux update</code> is the real one for modifying a pending job." },
+      { q: "<code>flux multi-prog</code>", opts: ["Real", "Made up"], a: 0,
+        why: "Real, for running different programs across different task ranks in one job." }
+    ],
+    joke: { setup: "What do you call a Flux instance inside a Flux instance inside a Flux instance?", punch: "Deep dish." }
+  },
+  {
+    name: "Flux internals",
+    items: [
+      { q: "What does TBON stand for?", opts: ["Tree-Based Overlay Network", "Task Broker Object Notation", "Topology Balanced Output Node", "Transactional Batch Ordering Node"], a: 0,
+        why: "The brokers are arranged in a tree, which is how a message gets from rank 0 to rank 4095 without rank 0 talking to all 4095 directly." },
+      { q: "A job shell plugin can be written in C or which other language?", opts: ["Python", "Lua", "Rust", "Perl"], a: 1,
+        why: "Lua, defined inline in an initrc with plugin.register. That is what you used in the Module 1 workshop." },
+      { q: "<code>flux uptime</code> reports a 'depth'. Depth of what?", opts: ["The scheduler queue", "The node's NUMA topology", "This instance's position in the hierarchy", "How long the broker has run"], a: 2,
+        why: "Depth 0 is the system instance. Every flux batch or flux alloc you run underneath it increases the depth by one." },
+      { q: "Which service underpins most of the others, including flux archive?", opts: ["The KVS", "The job shell", "Fluxion", "hwloc"], a: 0,
+        why: "The key-value store. flux archive puts named blobs into it so they can be retrieved on nodes with no shared filesystem." },
+      { q: "What is Fluxion?", opts: ["The Python SDK", "The graph-based scheduler", "The container runtime", "The message broker"], a: 1,
+        why: "The graph-based scheduler. You have seen its modules as sched-fluxion-qmanager and sched-fluxion-resource in flux module list." },
+      { q: "Which command exists in Flux but has no Slurm equivalent?", opts: ["flux run", "flux batch", "flux submit", "flux alloc"], a: 2,
+        why: "flux submit fires and forgets, writing output to a file rather than watching. srun and sbatch cover the other three." }
+    ],
+    joke: { setup: "Why did the batch job go to therapy?", punch: "Unresolved dependencies." }
+  },
+  {
+    name: "HPC history",
+    items: [
+      { q: "What did the 'MPI' in MPI-1 originally stand for?", opts: ["Multi-Process Interconnect", "Message Passing Interface", "Massively Parallel Infrastructure", "Multiple Program Invocation"], a: 1,
+        why: "Message Passing Interface. The 1.0 standard landed in 1994 and we are all still living in it." },
+      { q: "The TOP500 list ranks machines using which benchmark?", opts: ["STREAM", "HPCG", "LINPACK", "SPEC CPU"], a: 2,
+        why: "LINPACK, which is why HPCG was later introduced as a counterweight that stresses memory rather than dense floating point." },
+      { q: "Roughly how many FLOPS is an exaflop?", opts: ["10^15", "10^18", "10^21", "10^12"], a: 1,
+        why: "10^18. A petaflop is 10^15, and a zettaflop, should we get there, is 10^21." },
+      { q: "Which of these is a molecular dynamics code you ran in this tutorial?", opts: ["LAMMPS", "WRF", "NAMD", "GROMACS"], a: 0,
+        why: "LAMMPS, the Large-scale Atomic/Molecular Massively Parallel Simulator. The others are all real codes, just not the one in Module 2." },
+      { q: "What does 'embarrassingly parallel' describe?", opts: ["A job that crashed publicly", "Work needing no communication between tasks", "A job oversubscribing its cores", "A poorly load-balanced job"], a: 1,
+        why: "No communication needed between tasks, which is why the QAOA depth sweep was a good fit for bulksubmit." }
+    ],
+    joke: { setup: "I asked the scheduler for a job with zero nodes.", punch: "It gave me an existential crisis and a very fast completion time." }
+  },
+  {
+    name: "Chicago and pizza",
+    items: [
+      { q: "Chicago is generally credited with inventing which building type?", opts: ["The suspension bridge", "The rotating restaurant", "The steel-frame skyscraper", "The parking garage"], a: 2,
+        why: "The steel frame moved the load off the walls, so height stopped being limited by how thick you could make the ground floor. Same trick Flux plays with scheduling." },
+      { q: "Giardiniera, the Chicago condiment, is essentially what?", opts: ["Pickled vegetables in oil", "A cream sauce", "A cured sausage", "A smoked cheese"], a: 0,
+        why: "Pickled vegetables in oil, usually with a serious amount of sport pepper. Non-negotiable on an Italian beef." },
+      { q: "Chicago's elevated train loop gives which downtown area its name?", opts: ["The Ring", "The Circuit", "The Belt", "The Loop"], a: 3,
+        why: "The Loop. A closed circuit of track that everything routes through, which is either a great metaphor for rank 0 or a warning about single points of failure." },
+      { q: "SC26 is being held at which venue?", opts: ["Navy Pier", "McCormick Place", "Soldier Field", "The Merchandise Mart"], a: 1,
+        why: "McCormick Place, 15 to 20 November 2026. The first SC ever held in Chicago." },
+      { q: "A deep dish is assembled in an unusual order. What goes on top?", opts: ["Cheese", "Crust", "Sauce", "Sausage"], a: 2,
+        why: "Sauce on top, cheese underneath, so the cheese does not burn during the long bake. Layers, in a deliberate order, for a reason. There is a scheduling lesson in there somewhere." }
+    ],
+    joke: { setup: "How does a Flux broker order a pizza?", punch: "It submits a request, then blocks until the future is fulfilled." }
+  }
+];
+
+const scores = TEAMS.map(() => 0);
+let round = 0, idx = 0, answered = null;
+
+function drawTeams() {
+  const top = Math.max(...scores);
+  document.getElementById("teams").innerHTML = TEAMS.map((name, i) => `
+    <div class="team ${scores[i] === top && top > 0 ? "lead" : ""}">
+      <input class="team-name" value="${name}" data-team="${i}" aria-label="Team ${i + 1} name">
+      <div class="score">${scores[i]}</div>
+      <button data-delta="-1" data-team="${i}" aria-label="Subtract a point">&minus;</button>
+      <button data-delta="1" data-team="${i}" aria-label="Add a point">+</button>
+    </div>`).join("");
+}
+
+function drawRounds() {
+  document.getElementById("roundbar").innerHTML = ROUNDS.map((r, i) =>
+    `<button data-round="${i}" aria-current="${i === round}">${i + 1}. ${r.name}</button>`).join("");
+}
+
+function current() {
+  const r = ROUNDS[round];
+  return idx < r.items.length ? { kind: "q", item: r.items[idx] } : { kind: "joke", item: r.joke };
+}
+
+function draw() {
+  drawRounds();
+  const card = document.getElementById("card");
+  const cur = current();
+
+  if (cur.kind === "joke") {
+    card.className = "panel joke";
+    card.innerHTML = `
+      <div class="qmeta">Intermission</div>
+      <div class="prompt">${cur.item.setup}</div>
+      <div class="punch" id="punch" hidden>${cur.item.punch}</div>
+      <button id="tell" style="font:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 18px;background:var(--ink);color:#fff;font-weight:600">Tell it</button>`;
+    document.getElementById("tell").onclick = (e) => {
+      document.getElementById("punch").hidden = false;
+      e.target.remove();
+    };
+  } else {
+    card.className = "panel";
+    card.innerHTML = `
+      <div class="qmeta">Round ${round + 1} &middot; Question ${idx + 1} of ${ROUNDS[round].items.length}</div>
+      <div class="prompt">${cur.item.q}</div>
+      <div class="options">${cur.item.opts.map((o, i) =>
+        `<button data-opt="${i}">${o}</button>`).join("")}</div>
+      <div class="reveal" id="reveal" hidden>${cur.item.why}</div>`;
+    card.querySelectorAll("[data-opt]").forEach((b) => {
+      b.onclick = () => {
+        if (answered !== null) return;
+        answered = Number(b.dataset.opt);
+        card.querySelectorAll("[data-opt]").forEach((x) => {
+          const i = Number(x.dataset.opt);
+          if (i === cur.item.a) x.classList.add("right");
+          else if (i === answered) x.classList.add("wrong");
+          x.disabled = true;
+        });
+        document.getElementById("reveal").hidden = false;
+      };
+    });
+  }
+
+  document.getElementById("progress").textContent =
+    `Round ${round + 1} of ${ROUNDS.length}`;
+  document.getElementById("prev").disabled = round === 0 && idx === 0;
+  document.getElementById("next").disabled =
+    round === ROUNDS.length - 1 && idx > ROUNDS[round].items.length - 1;
+  drawTeams();
+}
+
+document.getElementById("next").onclick = () => {
+  answered = null;
+  if (idx < ROUNDS[round].items.length) idx++;
+  else { round++; idx = 0; }
+  draw();
+};
+
+document.getElementById("prev").onclick = () => {
+  answered = null;
+  if (idx > 0) idx--;
+  else if (round > 0) { round--; idx = ROUNDS[round].items.length; }
+  draw();
+};
+
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t.dataset.delta) {
+    scores[Number(t.dataset.team)] += Number(t.dataset.delta);
+    drawTeams();
+  }
+  if (t.dataset.round !== undefined) {
+    round = Number(t.dataset.round); idx = 0; answered = null; draw();
+  }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.classList.contains("team-name")) {
+    TEAMS[Number(e.target.dataset.team)] = e.target.value;
+  }
+});
+
+draw();
+</script>
+</body>
+</html>
