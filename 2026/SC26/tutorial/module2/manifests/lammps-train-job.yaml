@@ -1,0 +1,29 @@
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: lammps-flux
+spec:
+  # Reference the pre-defined runtime by name
+  runtimeRef:
+    name: flux-runtime
+  trainer:
+    numNodes: 2
+    numProcPerNode: 96
+    image: ghcr.io/converged-computing/metric-lammps-cpu:libfabric-zen4-reax
+    # You do not need to write "flux run, etc" here. It will be wrapped
+    command: ["lmp", "-v", "x", "8", "-v", "y", "8", "-v", "z", "8", "-in", "in.reaxff.hns", "-nocite"]
+    resourcesPerNode:
+      limits:
+        vpc.amazonaws.com/efa: "1"
+      requests:
+        vpc.amazonaws.com/efa: "1"
+    env:
+     - name: FI_EFA_FORK_SAFE
+       value: "1"
+     - name: OMPI_MCA_btl
+       value: tcp,self
+     - name: FI_PROVIDER
+       value: efa
+      # This is how we match the view (operating system and version) of the initContainer to install Flux
+     - name: FLUX_VIEW_IMAGE
+       value: ghcr.io/converged-computing/flux-view-ubuntu:tag-jammy
