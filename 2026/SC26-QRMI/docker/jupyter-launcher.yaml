@@ -1,0 +1,58 @@
+- title: "Coscheduling quantum and classical work with QRMI"
+  description: One submit, two jobs. A scout opens the vendor session and a held classical job waits for it, first on a mock vendor and then on an IBM QPU through QRMI
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./tutorial/module1/01_coscheduling_qrmi.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: flux-quantum
+  description: the Flux plugin this demo runs, with the IBM, Braket, IonQ, and mock backends
+  source: https://github.com/converged-computing/flux-quantum
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: QRMI
+  description: the Quantum Resource Management Interface the IBM backend goes through
+  source: https://github.com/qiskit-community/qrmi
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Framework Portal
+  description: Flux Framework portal for projects, releases, and publication.
+  source: https://flux-framework.org/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Documentation
+  source: https://flux-framework.readthedocs.io/en/latest/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Cheat Sheet
+  source: https://flux-framework.org/cheat-sheet/
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Glossary of Terms
+  source: https://flux-framework.readthedocs.io/en/latest/glossary.html
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
+- title: Flux Learning Guide
+  source: https://flux-framework.readthedocs.io/en/latest/guides/learning_guide.html
+  description: learn about what Flux does, how it works, and real research applications
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
