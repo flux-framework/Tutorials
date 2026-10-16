@@ -115,12 +115,12 @@ rm -rf ~/.aws
 
 # Clone repository tutorials, expose tutorial notebooks
 mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static /srv/jupyterlab/static
-git clone --depth 1 -b hpcic-2026 https://github.com/flux-framework/Tutorials /tmp/tutorials
-cp -R /tmp/tutorials/2026/HPCIC-AWS/tutorial /home/ubuntu/tutorial
-cp /tmp/tutorials/2026/HPCIC-AWS/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
+git clone --depth 1 -b sc26-tutorial https://github.com/flux-framework/Tutorials /tmp/tutorials
+cp -R /tmp/tutorials/2026/SC26/tutorial /home/ubuntu/tutorial
+cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
-cp /tmp/tutorials/2026/HPCIC-AWS/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
+cp /tmp/tutorials/2026/SC26/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
 sudo chown -R ubuntu /home/ubuntu/
 
