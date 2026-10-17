@@ -118,6 +118,12 @@ mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.ju
 git clone --depth 1 -b sc26-tutorial https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2026/SC26/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
+sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/jp_app_launcher.yaml
+
+sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/jp_app_launcher.yaml
+export JUPYTER_APP_LAUNCHER_PATH=/usr/local/share/jupyter/lab/jupyter_app_launcher/
+
+
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
 cp /tmp/tutorials/2026/SC26/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
@@ -151,7 +157,7 @@ sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
 export PYTHONPATH=/usr/lib/python3.14/site-packages
 cd /home/ubuntu
 
-flux start --test-size=4 /usr/local/bin/jupyter-lab \\
+flux start --test-size=4 jupyter-lab \\
   --ip=0.0.0.0 \\
   --port=8888 \\
   --notebook-dir=/home/ubuntu \\
