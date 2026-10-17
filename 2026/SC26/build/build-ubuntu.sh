@@ -111,23 +111,40 @@ sudo locale-gen en_US.UTF-8
 # NOTE: luaposix installed by rocks due to Ubuntu bug: #1752082 https://bugs.launchpad.net/ubuntu/+source/lua-posix/+bug/1752082
 sudo luarocks install luaposix
 
+git clone --recurse-submodules https://github.com/openpmix/openpmix.git && \
+cd openpmix && \
+git checkout v6.1.0 && \
+./autogen.pl && \
+./configure --prefix=/usr --disable-static && sudo make -j 4 install && \
+sudo ldconfig
+
 # Install openpmix, prrte. Openpmix (pmix2) seems to be installed by hwloc, v5.x
 sudo mkdir -p /opt/flux
 sudo chown -R ubuntu /opt/flux
 cd /opt/flux
 git clone --recurse-submodules https://github.com/openpmix/prrte.git && \
     cd prrte && \
-    git checkout v3.0.1 && \
+    git checkout v3.0.14 && \
     ./autogen.pl && \
     ./configure --prefix=/opt/prrte && \
     make -j && sudo make -j all install
 
-git clone https://github.com/openpmix/openpmix.git && \
-cd openpmix && \
-git checkout fefaed568f33bf86f28afb6e45237f1ec5e4de93 && \
-./autogen.pl && \
-./configure --prefix=/usr --disable-static && sudo make -j 4 install && \
-sudo ldconfig
+cd /opt
+curl -LO https://github.com/openpmix/prrte/releases/download/v4.1.0/prrte-4.1.0.tar.bz2
+tar xjf prrte-4.1.0.tar.bz2
+cd prrte-4.1.0
+./configure --with-pmix=/usr
+make -j && sudo make install
+
+git clone https://github.com/flux-framework/flux-pmix.git
+cd flux-pmix
+git checkout v0.7.1
+./autogen.sh
+PKG_CONFIG_PATH=/opt/pmix-5.0.9/lib/pkgconfig:$PKG_CONFIG_PATH \
+LDFLAGS="-Wl,-rpath,/opt/pmix-5.0.9/lib" \
+  ./configure --prefix=$FLUX_CORE_PREFIX
+make -j
+sudo make install
 
 export LANG=C.UTF-8
 export FLUX_SECURITY_VERSION=0.15.0
@@ -196,14 +213,6 @@ sudo apt-get update && \
         openssh-client openssh-server \
         dnsutils telnet strace \
         unzip bzip2
-
-# Install oras for saving artifacts
-export VERSION="1.2.0" && \
-    curl -LO "https://github.com/oras-project/oras/releases/download/v${VERSION}/oras_${VERSION}_linux_arm64.tar.gz" && \
-    mkdir -p oras-install/ && \
-    tar -zxf oras_${VERSION}_*.tar.gz -C oras-install/ && \
-    sudo mv oras-install/oras /usr/local/bin/ && \
-    rm -rf oras_${VERSION}_*.tar.gz oras-install/
     
 # Additional packages
 sudo apt-get update && sudo apt-get install -y ibverbs-utils libibverbs-dev libibverbs1 && sudo apt-get clean
@@ -251,7 +260,6 @@ sudo sed -i -e 's/^GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="systemd.unified_cgr
 sudo update-grub
 sudo mkdir -p /etc/systemd/system/user@.service.d
 
-cd /opt/lammps
 cat <<EOF | tee delegate.conf
 [Service]
 Delegate=cpu cpuset io memory pids
@@ -365,11 +373,11 @@ sudo python3 -m pip install pycurl --break-system-packages
 sudo python3 -m pip install ipython --break-system-packages && sudo python3 -m IPython kernel install 
 
 # Flux accounting
-git clone https://github.com/flux-framework/flux-accounting && \
-    cd flux-accounting && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr && \
-    make -j && sudo make install
+# git clone https://github.com/flux-framework/flux-accounting && \
+#    cd flux-accounting && \
+#    ./autogen.sh && \
+#    ./configure --prefix=/usr && \
+#    make -j && sudo make install
 
 # This is for arm
 wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-arm64.tar.xz && \
@@ -397,11 +405,19 @@ sudo python3 -m pip install ipywidgets --break-system-packages
 
 # For Chapter 5: hybrid quantum-classical QAOA on AWS Braket SV1
 sudo python3 -m pip install amazon-braket-sdk scipy --break-system-packages
-
+sudo python3 -m pip install jupyterlab --break-system-packages
 sudo apt-get install -y bash-completion
 
+sudo pip install jupyter_app_launcher --break-system-packages && \
+sudo pip install --upgrade jupyter-server --break-system-packages && \
+sudo pip install jupyter-launcher-shortcuts --break-system-packages && \
+sudo pip install jupyterhub_idle_culler --break-system-packages && \
+sudo mkdir -p /usr/local/share/jupyter/lab/jupyter_app_launcher --break-system-packages && \
+sudo pip install jupyterhub --break-system-packages && \
+sudo pip install ipywidgets --break-system-packages
+
 # This is for riverML
-sudo python3 -m pip install river riverapi --break-system-packages
+# sudo python3 -m pip install river riverapi --break-system-packages
 
 # COPY ./tutorial /home/jovyan/
 # COPY ./docker/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/jp_app_launcher.yaml
