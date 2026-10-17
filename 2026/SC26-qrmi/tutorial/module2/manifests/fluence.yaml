@@ -1,0 +1,290 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluence
+  namespace: kube-system
+---
+# Bind the built-in scheduler roles so fluence (a full kube-scheduler build) has
+# every list/watch the scheduling framework needs (nodes, pods, PV/PVC, CSI,
+# storageclasses, resourceclaims/slices, volumeattachments, events, etc.).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fluence-as-kube-scheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: fluence
+    namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fluence-as-volume-scheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:volume-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: fluence
+    namespace: kube-system
+---
+# Delegated authentication: read the auth configmap in kube-system. This is the
+# fix for the "extension-apiserver-authentication ... forbidden" errors.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: fluence-extension-apiserver-authentication-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+  - kind: ServiceAccount
+    name: fluence
+    namespace: kube-system
+---
+# Extras the built-in scheduler role does not grant: the alpha PodGroup/Workload
+# API (gang), and leader-election leases under our scheduler name.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluence-extra
+rules:
+  - apiGroups: ["scheduling.k8s.io"]
+    resources: ["podgroups", "workloads", "podgroups/status", "workloads/status"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update", "list", "watch"]
+  # PreBind stamps the allocated backend onto the pod as an annotation; the
+  # built-in system:kube-scheduler role only allows patching pods/status, not
+  # the pod object, so grant it here.
+  - apiGroups: [""]
+    resources: ["pods"]
+    # create/delete: the webhook creates the one-off quantum submitter pod
+    # (ensureSubmitterPod) and the scheduler reaps it during gang cleanup.
+    verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+  # The webhook self-manages its TLS by patching its own config's caBundle.
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["mutatingwebhookconfigurations"]
+    verbs: ["get", "list", "watch", "patch"]
+  # The webhook creates per-namespace sidecar RBAC on demand when a leader
+  # pod is admitted, so users do not need to apply RBAC manually.
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "create"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fluence-extra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fluence-extra
+subjects:
+  - kind: ServiceAccount
+    name: fluence
+    namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluence-scheduler-config
+  namespace: kube-system
+data:
+  scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: false
+    profiles:
+      - schedulerName: fluence
+        plugins:
+          # multiPoint wires Fluence into every extension point its Go type
+          # implements: PreFilter, Filter, and PreBind (which stamps the backend
+          # annotation). Listing points individually risks omitting one — that is
+          # exactly what left PreBind unwired and the backend annotation unset.
+          multiPoint:
+            enabled: [{name: Fluence}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluence
+  namespace: kube-system
+  labels: {app: fluence}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: fluence}
+  template:
+    metadata:
+      labels: {app: fluence}
+    spec:
+      serviceAccountName: fluence
+      containers:
+        - name: fluence
+          image: ghcr.io/converged-computing/fluence:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/fluence
+            - --config=/etc/fluence/scheduler-config.yaml
+            # fluence is its own scheduler binary, so it needs the gang gates set
+            # here (the cluster-level kube-scheduler gates don't apply to it).
+            # Without these its PodGroup/GangScheduling plugin is inactive, pods
+            # schedule with no gang semantics, and PodGroup status stays Pending.
+            - --feature-gates=GenericWorkload=true,GangScheduling=true
+            - --v=4
+          env:
+            # Path to the resources config (e.g. quantum backends). Unset/empty
+            # file -> classical-only graph. Supplied by the quantum add-on.
+            - name: FLUENCE_RESOURCES
+              value: /etc/fluence/resources.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/fluence
+      volumes:
+        - name: config
+          projected:
+            sources:
+              - configMap: {name: fluence-scheduler-config}
+              - configMap: {name: fluence-resources, optional: true}
+---
+# Mutating webhook: injects scheduler-chosen values into pods at creation time
+# (currently a downward-API QRMI_BACKEND env for quantum pods). It self-manages
+# TLS — generates a CA + serving cert at startup and patches the caBundle below —
+# so no cert-manager and no committed keys. failurePolicy Ignore keeps a webhook
+# outage from blocking pod creation cluster-wide.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluence-webhook
+  namespace: kube-system
+  labels: {app: fluence-webhook}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: fluence-webhook}
+  template:
+    metadata:
+      labels: {app: fluence-webhook}
+    spec:
+      serviceAccountName: fluence
+      containers:
+        - name: webhook
+          image: ghcr.io/converged-computing/fluence:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/fluence-webhook"]
+          # The webhook derives the FLUXION_* env contract (FLUXION_VENDOR,
+          # FLUXION_QRMI_TYPE, ...) from the resource graph's attribute keys, so
+          # it needs the same graph the scheduler and device plugin read. Without
+          # this it injects only FLUXION_BACKEND, and the sidecar can't route to
+          # a provider (which keys on qrmi_type).
+          env:
+            - name: FLUENCE_RESOURCES
+              value: /etc/fluence/resources.yaml
+          ports:
+            - containerPort: 8443
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8443, scheme: HTTPS}
+            initialDelaySeconds: 2
+          volumeMounts:
+            - name: config
+              mountPath: /etc/fluence
+      volumes:
+        - name: config
+          projected:
+            sources:
+              - configMap: {name: fluence-resources, optional: true}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluence-webhook
+  namespace: kube-system
+spec:
+  selector: {app: fluence-webhook}
+  ports:
+    - port: 443
+      targetPort: 8443
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: fluence-webhook
+webhooks:
+  - name: pods.fluence.flux-framework.org
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore        # never block pod creation if the webhook is down
+    # caBundle is filled in at runtime by the webhook patching this object.
+    clientConfig:
+      service:
+        name: fluence-webhook
+        namespace: kube-system
+        path: /mutate
+        port: 443
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+        scope: Namespaced
+    # Don't intercept system pods (and avoid bootstrap coupling).
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["kube-system"]
+# fluence-sidecar.yaml
+#
+# RBAC and supporting resources for the Fluence quantum sidecar.
+#
+# The sidecar runs inside a leader pod and needs:
+#   - patch/annotate on pods in its own namespace (to ungate workers and
+#     propagate the task ARN annotation)
+#
+# The sidecar ServiceAccount is namespace-scoped — it only has permissions
+# in the namespace where the workflow runs. The webhook sets
+# spec.serviceAccountName on the leader pod to fluence-sidecar.
+#
+# The fluence Python package is staged into user containers by an init
+# container (Model C): the webhook injects an init container from the
+# sidecar image that copies the package + sitecustomize into a shared
+# volume on the user container's PYTHONPATH. No ConfigMap, no user install.
+#
+# Apply with:
+#   kubectl apply -f deploy/fluence-sidecar.yaml
+
+
+---
+# PriorityClass for classical pods paired with quantum work.
+# Applied to worker pods by the webhook when they are gated.
+# When ungated, high priority triggers preemption of lower-priority work
+# so workers get nodes immediately as the QPU result arrives.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: fluence-quantum-classical
+  labels:
+    app: fluence
+value: 1000000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "High priority for classical pods paired with quantum work. Set by Fluence webhook."

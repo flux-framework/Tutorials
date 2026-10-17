@@ -4,8 +4,11 @@
 # Build from the qrmi directory (the build context is that directory, not docker/):
 #   docker build -f ./docker/Dockerfile -t ghcr.io/flux-framework/flux-tutorial:qrmi .
 #
-# Run locally:
-#   docker run --rm -it -p 8888:8888 ghcr.io/flux-framework/flux-tutorial:qrmi
+# Run locally. The docker socket is for the fluence notebook, which creates a
+# kind cluster on the host's docker. Leave it off and only that notebook is
+# affected.
+#   docker run --rm -it -p 8888:8888 -v /var/run/docker.sock:/var/run/docker.sock \
+#       ghcr.io/flux-framework/flux-tutorial:qrmi
 #
 # Adapted from 2026/SC26/docker/Dockerfile. The base is not fluxrm/flux-sched,
 # because the demo needs a flux-sched with the coschedule queue policy, the
@@ -27,7 +30,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # tini reaps and forwards signals as pid 1. python3-venv is for the jupyter
 # venv below, git is for nbgitpuller.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tini python3-venv git jq \
+    && apt-get install -y --no-install-recommends tini python3-venv git jq bash-completion \
     && rm -rf /var/lib/apt/lists/*
 
 # JupyterLab in its own venv, on PATH first, as the SC26 image does. python3
@@ -49,6 +52,41 @@ RUN python3 -m venv ${VIRTUAL_ENV} \
 RUN /usr/bin/python3 -m pip install --break-system-packages --no-cache-dir ipykernel \
     && /usr/bin/python3 -m ipykernel install --prefix=/usr/local --name flux \
          --display-name "Python 3 (flux python)"
+
+# Kubernetes tooling for the fluence demo. kind creates its nodes on the
+# host's docker, through the socket mounted at run time, so no daemon runs
+# in here and nothing is privileged. The docker cli is the static build,
+# without the daemon.
+ARG DOCKER_VERSION=27.5.1
+ARG KIND_VERSION=v0.32.0
+RUN set -eu; arch=$(dpkg --print-architecture); \
+    case "$arch" in amd64) darch=x86_64 ;; arm64) darch=aarch64 ;; *) echo "unsupported arch $arch" >&2; exit 1 ;; esac; \
+    curl -fsSL "https://download.docker.com/linux/static/stable/${darch}/docker-${DOCKER_VERSION}.tgz" \
+        | tar -xz -C /usr/local/bin --strip-components=1 docker/docker; \
+    curl -fsSL -o /usr/local/bin/kind "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-${arch}"; \
+    chmod +x /usr/local/bin/kind; \
+    kver=$(curl -fsSL https://dl.k8s.io/release/stable.txt); \
+    curl -fsSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${kver}/bin/linux/${arch}/kubectl"; \
+    chmod +x /usr/local/bin/kubectl; \
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash; \
+    docker --version; kind --version; kubectl version --client; helm version
+
+# Tab completion in every terminal. bash-completion loads these lazily on the
+# first Tab for each command, and the system bashrc turns bash-completion on
+# for interactive shells, which is what a JupyterLab terminal is. k is kubectl.
+RUN kubectl completion bash > /usr/share/bash-completion/completions/kubectl \
+    && kind completion bash > /usr/share/bash-completion/completions/kind \
+    && helm completion bash > /usr/share/bash-completion/completions/helm \
+    && docker completion bash > /usr/share/bash-completion/completions/docker \
+    && cat >> /etc/bash.bashrc <<'BASHRC'
+
+# flux tutorial: completion for kubectl, kind, helm, docker, and k
+if ! shopt -oq posix && [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+fi
+alias k=kubectl
+complete -o default -F __start_kubectl k 2>/dev/null || true
+BASHRC
 
 # This customizes the launcher UI
 # https://jupyter-app-launcher.readthedocs.io/en/latest/usage.html
@@ -72,12 +110,15 @@ ENV SHELL=/usr/bin/bash \
     FLUX_URI_RESOLVE_LOCAL=t
 
 EXPOSE 8888
-ENTRYPOINT ["tini", "--"]
 
-# This is for JupyterHub
+# The entrypoint starts as root so it can make a mounted docker socket usable
+# by the tutorial user, then drops to that user with setpriv and execs the
+# command. kind-up and kind-down wrap kind for the fluence notebook.
+COPY ./docker/bin/docker-entrypoint ./docker/bin/kind-up ./docker/bin/kind-down /usr/local/bin/
 COPY ./docker/entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["tini", "--", "docker-entrypoint"]
 
-USER ${NB_USER}
+USER root
 WORKDIR ${HOME}
 
 # flux-quantum-start is the base image's entrypoint: it writes the coschedule

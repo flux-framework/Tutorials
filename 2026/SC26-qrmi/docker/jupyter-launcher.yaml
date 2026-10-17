@@ -10,6 +10,25 @@
         icon: ./static/flux-icon.png
   catalog: Notebook
 
+- title: "Fluence: a scheduler plugin for Kubernetes"
+  description: A kind cluster on your docker, created from the notebook terminal, with fluence scheduling the pods
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./tutorial/module2/01_fluence.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
+
+- title: fluence
+  description: the Flux scheduler plugin for Kubernetes this demo installs
+  source: https://github.com/converged-computing/fluence
+  type: url
+  catalog: Flux Resources
+  args:
+      sandbox: [ 'allow-same-origin', 'allow-scripts', 'allow-downloads', 'allow-modals', 'allow-popups']
 - title: flux-quantum
   description: the Flux plugin this demo runs, with the IBM, Braket, IonQ, and mock backends
   source: https://github.com/converged-computing/flux-quantum

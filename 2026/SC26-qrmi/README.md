@@ -16,6 +16,7 @@ We will add modules as needed.
 | Module | What you will do |
 |---|---|
 | **1. Coscheduling with QRMI** | [`module1/`](tutorial/module1) — look at the instance and the plugins, run a mocked pair, then run the same pair against `ibm_kingston` through QRMI |
+| **2. Fluence in Kubernetes** | [`module2/`](tutorial/module2) — bring up a kind cluster on your docker from the notebook terminal, install fluence, schedule with it |
 
 ## How the notebooks work
 
@@ -28,12 +29,18 @@ Full details, including what the base image is and smoke tests, are in
 
 ```bash
 docker build -f ./docker/Dockerfile -t ghcr.io/flux-framework/flux-tutorial:qrmi-notebook .
-docker run --rm -it -p 8888:8888 ghcr.io/flux-framework/flux-tutorial:qrmi-notebook
+docker run --rm -it -p 8888:8888 -e IBM_CLOUD_TOKEN=$IBM_ACCESS_KEY -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/flux-framework/flux-tutorial:qrmi-notebook
 ```
 
 Open the URL with the token that JupyterLab prints, at `http://127.0.0.1:8888/lab?token=...`.
-The launcher has one tile for the notebook. Open it, then open a terminal from the
+The launcher has one tile per notebook. Open one, then open a terminal from the
 sidebar and drag it next to the notebook.
+
+The docker socket mount is for the fluence notebook, which creates a kind cluster on
+your machine's docker from the notebook terminal. Nothing runs privileged and no daemon
+runs inside the container: kind's nodes are ordinary containers next to this one, and
+`kind-up` inside the container makes them reachable. Leave the mount off and only that
+notebook is affected.
 
 The image is a layer on top of the flux-quantum QRMI demo image, which carries the
 whole stack: flux-core, a flux-sched with the `coschedule` queue policy, the
@@ -64,6 +71,13 @@ copied tree:
 docker run --rm -it -p 8888:8888 -v $(pwd)/tutorial:/home/ubuntu/tutorial ghcr.io/flux-framework/flux-tutorial:qrmi
 ```
 
+## Running it on EC2
+
+The same setup as SC26: [`build/build-ubuntu.sh`](build/build-ubuntu.sh) is the SC26
+build script with this tutorial's dependencies added, and [`ec2/`](ec2) holds the SC26
+spawner and hub config with the user data pointed at this tutorial. The spawner clones
+the notebooks at launch and runs `flux-quantum-start -- jupyter-lab` on the instance.
+
 ## Files
 
 | Path | Purpose |
@@ -72,4 +86,9 @@ docker run --rm -it -p 8888:8888 -v $(pwd)/tutorial:/home/ubuntu/tutorial ghcr.i
 | [`tutorial/`](tutorial) | What is copied into the image at `/home/ubuntu/tutorial` |
 | [`tutorial/module1/01_coscheduling_qrmi.ipynb`](tutorial/module1/01_coscheduling_qrmi.ipynb) | The notebook |
 | [`tutorial/module1/workload.py`](tutorial/module1/workload.py) | The classical half of the pair, a Bell circuit through the QRMI sampler |
+| [`tutorial/module2/01_fluence.ipynb`](tutorial/module2/01_fluence.ipynb) | The fluence notebook, kind on your docker |
+| [`tutorial/module2/manifests/`](tutorial/module2/manifests) | The kind config, the fluence deploy manifests, and the gang and qpu examples the notebook applies |
+| [`docker/bin/`](docker/bin) | The container entrypoint and the `kind-up` and `kind-down` helpers |
+| [`build/`](build) | SC26's AMI build script plus this tutorial's dependencies |
+| [`ec2/`](ec2) | SC26's spawner and hub config, user data pointed at this tutorial |
 | [`tutorial/assets/`](tutorial/assets) | The Flux logo the notebook banner uses |

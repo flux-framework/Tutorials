@@ -1,0 +1,128 @@
+#!/bin/bash
+# Create a kind cluster on the host's docker and make it reachable from this
+# container. kind's nodes are sibling containers of this one, so the default
+# kubeconfig points at the host's loopback, which is not ours. Joining this
+# container to kind's docker network and exporting the internal kubeconfig
+# fixes that, on Linux and on Docker Desktop alike.
+#
+# The default cluster is one control plane and two workers on Kubernetes
+# 1.36 with the alpha gang scheduling gates on, which fluence needs. That
+# config is built in below, and is the same as manifests/kind-config.yaml.
+# After the cluster is up, the PodGroup API is checked, so a cluster made
+# some other way is caught here and not at the first kubectl apply.
+#
+# The fluence image is pulled once on the host and loaded into every node, so
+# the scheduler, webhook, and device plugin all start from a local image
+# instead of three nodes each pulling it from ghcr.
+#
+#   kind-up              cluster "fluence", three nodes, gang gates on
+#   kind-up -n NAME      another name
+#   kind-up -c FILE      another kind config
+#   kind-up -i IMAGE     another node image, default kindest/node:v1.36.1
+#   kind-up -L           do not pull and load the fluence image
+set -eu
+NAME=fluence
+CONFIG=${KIND_CONFIG:-}
+IMAGE=${KIND_NODE_IMAGE:-kindest/node:v1.36.1}
+FLUENCE_IMAGE=${FLUENCE_IMAGE:-ghcr.io/converged-computing/fluence:latest}
+LOAD=1
+while getopts "n:c:i:Lh" opt; do
+    case $opt in
+        n) NAME=$OPTARG ;;
+        c) CONFIG=$OPTARG ;;
+        i) IMAGE=$OPTARG ;;
+        L) LOAD=0 ;;
+        *) sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    esac
+done
+
+die() { echo "kind-up: $*" >&2; exit 1; }
+
+docker info >/dev/null 2>&1 || die "docker is not reachable. In the tutorial container, run it with
+  -v /var/run/docker.sock:/var/run/docker.sock
+On a VM, is docker running and are you in the docker group?"
+
+# kind before 0.32 cannot run the 1.36 node image that carries the gang API
+kv=$(kind version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+' | head -1)
+case "$kv" in
+    v0.[0-9].*|v0.[12][0-9]|v0.3[01]) echo "kind-up: WARNING kind $kv is older than v0.32, the gang API needs a newer kind" >&2 ;;
+esac
+
+tmp=""
+if [ -z "$CONFIG" ]; then
+    tmp=$(mktemp)
+    CONFIG=$tmp
+    # the same as manifests/kind-config.yaml. Gates are per component because
+    # GangScheduling is scheduler only, and extraArgs is the kubeadm v1beta4
+    # list form, the map form is silently ignored on 1.36.
+    cat > "$CONFIG" <<'YAML'
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+          extraArgs:
+            - name: runtime-config
+              value: "scheduling.k8s.io/v1alpha2=true"
+            - name: feature-gates
+              value: "GenericWorkload=true"
+        scheduler:
+          extraArgs:
+            - name: feature-gates
+              value: "GenericWorkload=true,GangScheduling=true"
+        controllerManager:
+          extraArgs:
+            - name: feature-gates
+              value: "GenericWorkload=true"
+  - role: worker
+  - role: worker
+YAML
+fi
+[ -f "$CONFIG" ] || die "no such kind config: $CONFIG"
+
+if kind get clusters 2>/dev/null | grep -qx "$NAME"; then
+    echo "kind-up: cluster $NAME exists, reusing it (kind-down removes it)" >&2
+else
+    kind create cluster --name "$NAME" --image "$IMAGE" --config "$CONFIG"
+fi
+[ -n "$tmp" ] && rm -f "$tmp"
+
+# Inside the tutorial container, this container's id is its hostname, and
+# kind's nodes are siblings: join the kind network and use the internal
+# kubeconfig. On a VM where docker is local, the default kubeconfig is right.
+self=$(hostname)
+if docker inspect "$self" >/dev/null 2>&1; then
+    docker network connect kind "$self" 2>/dev/null \
+        || echo "kind-up: already on the kind network" >&2
+    kind export kubeconfig --name "$NAME" --internal
+else
+    kind export kubeconfig --name "$NAME"
+fi
+
+if [ "$LOAD" -eq 1 ]; then
+    echo "kind-up: pulling $FLUENCE_IMAGE on the host and loading it into the nodes" >&2
+    docker pull -q "$FLUENCE_IMAGE" >/dev/null
+    kind load docker-image --name "$NAME" "$FLUENCE_IMAGE"
+    docker pull -q busybox >/dev/null && kind load docker-image --name "$NAME" busybox
+fi
+
+echo
+kubectl cluster-info
+kubectl get nodes
+
+# the thing fluence's gang examples need. A cluster made with another image
+# or without the config has no PodGroup, and the first apply would fail with
+# "no matches for kind PodGroup". Say so now instead.
+if ! kubectl api-resources --api-group=scheduling.k8s.io -o name 2>/dev/null | grep -q '^podgroups'; then
+    echo >&2
+    echo "kind-up: cluster $NAME is up but has no PodGroup API (scheduling.k8s.io/v1alpha2)." >&2
+    echo "kind-up: it was made with another node image or without the gang gates." >&2
+    echo "kind-up: run  kind-down -n $NAME  and then kind-up again." >&2
+    exit 1
+fi
+echo
+echo "kind-up: done, PodGroup API present. kubectl, kind, helm, and docker tab completion"
+echo "kind-up: are on in every terminal. kind-down removes the cluster."
