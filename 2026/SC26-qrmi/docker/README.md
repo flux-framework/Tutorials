@@ -46,14 +46,41 @@ Build arguments:
 |---|---|---|
 | `BASE_IMAGE` | `ghcr.io/converged-computing/flux-quantum:qrmi-demo-10-8-2026` | The demo image to layer jupyter on |
 | `NB_USER` | `ubuntu` | The base image's user, which jupyter and the pair run as |
+| `DOCKER_VERSION` | `27.5.1` | The static docker cli, no daemon |
+| `KIND_VERSION` | `v0.32.0` | kind, the release fluence needs for Kubernetes 1.36 gang scheduling. kubectl is the current stable and helm the current 3 at build time |
 
 ## Run
 
 ```bash
-docker run --rm -it -p 8888:8888 ghcr.io/flux-framework/flux-tutorial:qrmi
+docker run --rm -it -p 8888:8888 -v /var/run/docker.sock:/var/run/docker.sock \
+    ghcr.io/flux-framework/flux-tutorial:qrmi
 ```
 
-Open the URL with the token that JupyterLab prints. The container starts with
+Open the URL with the token that JupyterLab prints.
+
+The socket mount is only for the fluence notebook. On start, `docker-entrypoint` runs
+as root, adds the tutorial user to a group with the socket's gid, and drops to that
+user with `setpriv` before running the command. The host is not modified. Without the
+mount it says so once and carries on, and only the fluence notebook is affected.
+
+### How kind reaches the notebook
+
+kind creates its nodes on the host's docker, as siblings of this container, and writes a
+kubeconfig that points at the host's loopback, which is not ours. `kind-up` creates the
+cluster, connects this container to kind's docker network (`docker network connect kind
+$(hostname)`), and exports the internal kubeconfig, so kubectl talks to the control plane
+container directly. This works on Linux and on Docker Desktop. Clusters outlive the
+container; `kind-down` deletes one.
+
+The default cluster is one control plane and two workers on Kubernetes 1.36 with the
+alpha gang scheduling gates on, which is what fluence needs. That config is built into
+`kind-up`, and `tutorial/module2/manifests/kind-config.yaml` is the same file for
+reading. After the cluster is up, `kind-up` checks that the PodGroup API is present and
+exits nonzero with instructions if it is not, which is what happens when an older
+cluster with the same name is reused. `kind-down` and `kind-up` again fixes it.
+
+Tab completion for `kubectl`, `kind`, `helm`, and `docker` is installed image wide, and
+`k` is an alias for `kubectl` with the same completion. The container starts with
 `flux-quantum-start -- jupyter lab`, which is `flux start` with the coschedule config
 and JupyterLab as the instance's initial program, so terminals opened from the sidebar
 have `FLUX_URI` set and are inside the instance. One broker, with as many cores as
@@ -97,6 +124,11 @@ flux-quantum-demo mock
 
 # the ibm part, with credentials exported in that terminal first
 flux-quantum-check --ibm
+
+# the fluence notebook, needs the socket mount. Expect one node Ready
+kind-up
+kubectl get nodes
+kind-down
 ```
 
 The mock demo takes about ten seconds and ends with `submit to both done: <n>s` and a
@@ -116,6 +148,8 @@ docker push ghcr.io/flux-framework/flux-tutorial:qrmi
 | `jupyter-launcher.yaml` | Launcher tiles, one for the notebook, plus reference links |
 | `requirements.txt` | JupyterLab, JupyterHub, and the launcher, installed into `/opt/venv` |
 | `entrypoint.sh` | JupyterHub single-user entrypoint |
+| `bin/docker-entrypoint` | Image entrypoint: fixes the docker socket group, drops to the tutorial user |
+| `bin/kind-up`, `bin/kind-down` | Create a kind cluster reachable from the container, and delete it |
 | `flux-icon.png` | Launcher icon |
 
 ## What is different from the SC26 image

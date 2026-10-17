@@ -1,0 +1,42 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "BraketSV1DeviceScoped",
+            "Effect": "Allow",
+            "Action": [
+                "braket:GetDevice",
+                "braket:CreateQuantumTask"
+            ],
+            "Resource": "arn:aws:braket:::device/quantum-simulator/amazon/sv1"
+        },
+        {
+            "Sid": "BraketTaskPollingAndSearch",
+            "Effect": "Allow",
+            "Action": [
+                "braket:GetQuantumTask",
+                "braket:SearchQuantumTasks",
+                "braket:CancelQuantumTask",
+                "braket:SearchDevices"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "BraketResultsBucket",
+            "Effect": "Allow",
+            "Action": [
+                "s3:CreateBucket",
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:PutBucketPublicAccessBlock",
+                "s3:PutBucketPolicy"
+            ],
+            "Resource": [
+                "arn:aws:s3:::amazon-braket-*",
+                "arn:aws:s3:::amazon-braket-*/*"
+            ]
+        }
+    ]
+}
