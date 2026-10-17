@@ -1,0 +1,38 @@
+# A gang of two, placed all or nothing. The PodGroup is the native Kubernetes
+# gang API (1.36, GangScheduling and GenericWorkload gates on): minCount says
+# how many pods must be placeable before any is bound. fluence does the
+# placement against its Fluxion graph, and the pods opt in with schedulerName
+# and point at the group through spec.schedulingGroup.podGroupName.
+apiVersion: scheduling.k8s.io/v1alpha2
+kind: PodGroup
+metadata:
+  name: training
+spec:
+  schedulingPolicy:
+    gang:
+      minCount: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: training
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: training}
+  template:
+    metadata:
+      labels:
+        app: training
+    spec:
+      schedulerName: fluence
+      schedulingGroup:
+        podGroupName: training
+      containers:
+        - name: worker
+          image: busybox
+          command: ["sleep", "3600"]
+          resources:
+            requests:
+              cpu: "1"
+              memory: 128Mi
