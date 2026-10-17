@@ -1,0 +1,35 @@
+# The same gang, asking for more cpu than any node has. Nothing is placed:
+# fluence matches the whole group against the graph or none of it, so the
+# PodGroup stays Pending and neither pod is bound. There is no half a gang.
+apiVersion: scheduling.k8s.io/v1alpha2
+kind: PodGroup
+metadata:
+  name: toobig
+spec:
+  schedulingPolicy:
+    gang:
+      minCount: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toobig
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: toobig}
+  template:
+    metadata:
+      labels:
+        app: toobig
+    spec:
+      schedulerName: fluence
+      schedulingGroup:
+        podGroupName: toobig
+      containers:
+        - name: worker
+          image: busybox
+          command: ["sleep", "3600"]
+          resources:
+            requests:
+              cpu: "500"

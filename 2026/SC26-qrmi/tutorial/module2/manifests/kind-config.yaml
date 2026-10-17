@@ -1,0 +1,35 @@
+# kind create cluster --image kindest/node:v1.36.1 --config manifests/kind-config.yaml  (what kind-up runs)
+#
+# Enables the alpha Workload / PodGroup gang-scheduling feature (off by default
+# in 1.36). Gates are set per-component because GangScheduling is scheduler-only
+# (setting it on the apiserver would be rejected as an unknown gate). extraArgs
+# uses the kubeadm v1beta4 list form ({name,value}); the old map form is silently
+# mishandled on 1.36 and the gates never apply.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+          extraArgs:
+            # Turn on the alpha API group + the API itself.
+            - name: runtime-config
+              value: "scheduling.k8s.io/v1alpha2=true"
+            - name: feature-gates
+              value: "GenericWorkload=true"
+        scheduler:
+          extraArgs:
+            - name: feature-gates
+              value: "GenericWorkload=true,GangScheduling=true"
+        controllerManager:
+          extraArgs:
+            # The podgroup-protection-controller (which removes the
+            # scheduling.k8s.io/podgroup-protection finalizer once a PodGroup's
+            # pods are gone) is gated on GenericWorkload. Without this, PodGroup
+            # deletion hangs on the finalizer forever.
+            - name: feature-gates
+              value: "GenericWorkload=true"
+  - role: worker
+  - role: worker

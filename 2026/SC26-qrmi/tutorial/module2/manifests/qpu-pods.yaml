@@ -1,0 +1,54 @@
+# Three pods that each want one qpu. The resources ConfigMap models two
+# backends, ibm_fez and ibm_marrakesh, each with one exclusive qpu, so two of
+# these are placed and the third waits until one of them is gone. No backend
+# is named here: fluence picks one from the graph, stamps it on the pod as an
+# annotation, and the webhook has already injected FLUXION_BACKEND and one
+# FLUXION_<ATTRIBUTE> per attribute in the config, read from that annotation.
+# busybox stands in for a real workload, so no credentials are needed.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sampler-1
+  labels: {app: sampler}
+spec:
+  schedulerName: fluence
+  restartPolicy: Never
+  containers:
+    - name: sampler
+      image: busybox
+      command: ["sh", "-c", "echo BACKEND=$FLUXION_BACKEND VENDOR=$FLUXION_VENDOR; sleep 3600"]
+      resources:
+        requests: {fluxion.flux-framework.org/qpu: "1"}
+        limits: {fluxion.flux-framework.org/qpu: "1"}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sampler-2
+  labels: {app: sampler}
+spec:
+  schedulerName: fluence
+  restartPolicy: Never
+  containers:
+    - name: sampler
+      image: busybox
+      command: ["sh", "-c", "echo BACKEND=$FLUXION_BACKEND VENDOR=$FLUXION_VENDOR; sleep 3600"]
+      resources:
+        requests: {fluxion.flux-framework.org/qpu: "1"}
+        limits: {fluxion.flux-framework.org/qpu: "1"}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sampler-3
+  labels: {app: sampler}
+spec:
+  schedulerName: fluence
+  restartPolicy: Never
+  containers:
+    - name: sampler
+      image: busybox
+      command: ["sh", "-c", "echo BACKEND=$FLUXION_BACKEND VENDOR=$FLUXION_VENDOR; sleep 3600"]
+      resources:
+        requests: {fluxion.flux-framework.org/qpu: "1"}
+        limits: {fluxion.flux-framework.org/qpu: "1"}
