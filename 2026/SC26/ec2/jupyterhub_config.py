@@ -36,6 +36,7 @@ c.JupyterHub.static_paths = ["/srv/jupyterhub/static"]
 c.JupyterHub.hub_ip = "127.0.0.1"
 c.JupyterHub.hub_port = 8081
 c.JupyterHub.ip = "0.0.0.0"
+# Change to 80 for without https
 c.JupyterHub.port = 443
 c.JupyterHub.hub_connect_url = "http://127.0.0.1:8081"
 
@@ -86,7 +87,7 @@ c.EC2Spawner.start_timeout = 300
 
 # The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-c.EC2Spawner.ami = "ami-04fde965376f2d904"
+c.EC2Spawner.ami = "ami-008964e3e14bc258b"
 
 # Instance type for each user's server.
 # 't4g.2xlarge' is what had a maximum fom per core ratio in my experiments
