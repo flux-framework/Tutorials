@@ -33,7 +33,7 @@ subjects:
     name: fluence
     namespace: kube-system
 ---
-# Delegated authentication: read the auth configmap in kube-system. This is the
+# Delegated authentication. Read the auth configmap in kube-system. This is the
 # fix for the "extension-apiserver-authentication ... forbidden" errors.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -49,7 +49,7 @@ subjects:
     name: fluence
     namespace: kube-system
 ---
-# Extras the built-in scheduler role does not grant: the alpha PodGroup/Workload
+# Extras the built-in scheduler role does not grant. The alpha PodGroup/Workload
 # API (gang), and leader-election leases under our scheduler name.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -62,12 +62,12 @@ rules:
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
     verbs: ["create", "get", "update", "list", "watch"]
-  # PreBind stamps the allocated backend onto the pod as an annotation; the
+  # PreBind stamps the allocated backend onto the pod as an annotation. The
   # built-in system:kube-scheduler role only allows patching pods/status, not
   # the pod object, so grant it here.
   - apiGroups: [""]
     resources: ["pods"]
-    # create/delete: the webhook creates the one-off quantum submitter pod
+    # create/delete. The webhook creates the one-off quantum submitter pod
     # (ensureSubmitterPod) and the scheduler reaps it during gang cleanup.
     verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
   # The webhook self-manages its TLS by patching its own config's caBundle.
@@ -117,8 +117,8 @@ data:
       - schedulerName: fluence
         plugins:
           # multiPoint wires Fluence into every extension point its Go type
-          # implements: PreFilter, Filter, and PreBind (which stamps the backend
-          # annotation). Listing points individually risks omitting one — that is
+          # implements PreFilter, Filter, and PreBind (which stamps the backend
+          # annotation). Listing points individually risks omitting one, that is
           # exactly what left PreBind unwired and the backend annotation unset.
           multiPoint:
             enabled: [{name: Fluence}]
@@ -166,9 +166,9 @@ spec:
               - configMap: {name: fluence-scheduler-config}
               - configMap: {name: fluence-resources, optional: true}
 ---
-# Mutating webhook: injects scheduler-chosen values into pods at creation time
+# Mutating webhook. Injects scheduler-chosen values into pods at creation time
 # (currently a downward-API QRMI_BACKEND env for quantum pods). It self-manages
-# TLS — generates a CA + serving cert at startup and patches the caBundle below —
+# TLS, generates a CA + serving cert at startup and patches the caBundle below
 # so no cert-manager and no committed keys. failurePolicy Ignore keeps a webhook
 # outage from blocking pod creation cluster-wide.
 apiVersion: apps/v1
@@ -192,13 +192,19 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["/bin/fluence-webhook"]
           # The webhook derives the FLUXION_* env contract (FLUXION_VENDOR,
-          # FLUXION_QRMI_TYPE, ...) from the resource graph's attribute keys, so
+          # FLUXION_QRMI_TYPE...) from the resource graph's attribute keys, so
           # it needs the same graph the scheduler and device plugin read. Without
           # this it injects only FLUXION_BACKEND, and the sidecar can't route to
           # a provider (which keys on qrmi_type).
           env:
             - name: FLUENCE_RESOURCES
               value: /etc/fluence/resources.yaml
+            # admission control is on by default. Set to off here to disable it
+            - name: FLUENCE_ADMISSION
+              value: "on"
+            # the image staged into quantum pods for the interceptor, built for amd64 and arm64
+            - name: FLUENCE_SIDECAR_IMAGE
+              value: ghcr.io/converged-computing/fluence-sidecar:latest
           ports:
             - containerPort: 8443
           readinessProbe:
@@ -256,16 +262,16 @@ webhooks:
 #
 # RBAC and supporting resources for the Fluence quantum sidecar.
 #
-# The sidecar runs inside a leader pod and needs:
+# The sidecar runs inside a leader pod and needs the following.
 #   - patch/annotate on pods in its own namespace (to ungate workers and
 #     propagate the task ARN annotation)
 #
-# The sidecar ServiceAccount is namespace-scoped — it only has permissions
+# The sidecar ServiceAccount is namespace-scoped, it only has permissions
 # in the namespace where the workflow runs. The webhook sets
 # spec.serviceAccountName on the leader pod to fluence-sidecar.
 #
 # The fluence Python package is staged into user containers by an init
-# container (Model C): the webhook injects an init container from the
+# container (Model C). The webhook injects an init container from the
 # sidecar image that copies the package + sitecustomize into a shared
 # volume on the user container's PYTHONPATH. No ConfigMap, no user install.
 #

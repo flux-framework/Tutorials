@@ -27,7 +27,7 @@ class EC2Spawner(Spawner):
     """
 
     ami = Unicode(
-        "ami-06cebbfb446ee0ceb",
+        "ami-0e16d3f6d409182d3",
         config=True,
         help="The AMI ID for the Flux + Usernetes VM.",
     )
@@ -110,6 +110,9 @@ sudo chown -R ubuntu /home/ubuntu
 # Just in case...
 rm -rf ~/.aws
 
+# someone is going to type python
+[ -e /usr/bin/python ] || ln -s "$(command -v python3)" /usr/bin/python
+
 # Someone is going to type this
 # sudo ln -s $(which python3) /usr/bin/python
 
@@ -118,10 +121,16 @@ mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.ju
 git clone --depth 1 -b sc26-qrmi https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2026/SC26-qrmi/tutorial /home/ubuntu/tutorial
 cp /tmp/tutorials/2026/SC26-qrmi/docker/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
+sudo cp /tmp/tutorials/2026/SC26-qrmi/docker/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/jp_app_launcher.yaml
+export JUPYTER_APP_LAUNCHER_PATH=/usr/local/share/jupyter/lab/jupyter_app_launcher/
 sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
 
 cp /tmp/tutorials/2026/SC26-qrmi/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
+# the tutorial's docker-compose.yaml for usernetes (image usernetes_node, port 80), over the one in the checkout
+cp /tmp/tutorials/2026/SC26-qrmi/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
+# start-usernetes.sh copies the kubeconfig here
+mkdir -p /home/ubuntu/.kube
 sudo chown -R ubuntu /home/ubuntu/
 
 # We need to stop nginx if it's running
@@ -157,13 +166,12 @@ cd /home/ubuntu
 export FLUX_CLI_PLUGINPATH=/opt/flux-quantum/cli-plugins
 export FLUX_QUANTUM_MOCK=1
 export FLUX_QUANTUM_JOBTAP=/etc/flux/system/jobtap/quantum.so
-export JUPYTER_APP_LAUNCHER_PATH=/home/ubuntu/.local/share/jupyter/jupyter_app_launcher/
 
-flux-quantum-start -- /usr/local/bin/jupyter-lab \\
+flux-quantum-start -- jupyter-lab \\
   --ip=0.0.0.0 \\
   --port=8888 \\
-  --notebook-dir=/home/ubuntu \\
-  --preferred-dir=/home/ubuntu \\
+  --notebook-dir=/home/ubuntu/tutorial \\
+  --preferred-dir=/home/ubuntu/tutorial \\
   --IdentityProvider.token="" \\
   --ServerApp.password="" \\
   --ServerApp.base_url=$JUPYTERHUB_SERVICE_PREFIX \\

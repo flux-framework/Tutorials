@@ -1,5 +1,5 @@
 # JupyterLab and the launcher, installed into /opt/venv. The pins the SC26
-# image carries are a 2023 pip-compile for python 3.10 and do not build on
+# image has are a 2023 pip-compile for python 3.10 and do not build on
 # the base image's python 3.12 (cffi 1.15 for one), so this is a fresh, loose
 # set. Pin it with pip-compile when the image is being frozen for an event.
 jupyterlab>=4.2,<5
