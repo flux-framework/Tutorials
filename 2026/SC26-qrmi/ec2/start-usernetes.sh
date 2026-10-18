@@ -8,7 +8,7 @@ cd -
 make -C /home/ubuntu/usernetes up
 sleep 10
 make -C /home/ubuntu/usernetes kubeadm-init
-sleep 10
+sleep 15
 make -C /home/ubuntu/usernetes install-flannel
 make -C /home/ubuntu/usernetes kubeconfig
 export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig
@@ -18,6 +18,7 @@ echo " 🍑  Untainting control plane and labeling node"
 control_plane_node=$(kubectl get nodes -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
 
 # Ensure the user interacts with default kubeconfig
+mkdir -p /home/ubuntu/.kube
 sudo cp /home/ubuntu/usernetes/kubeconfig /home/ubuntu/.kube/config
 
 # Taint away!

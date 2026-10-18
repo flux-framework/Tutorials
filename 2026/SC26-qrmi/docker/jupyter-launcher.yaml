@@ -6,19 +6,19 @@
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/module1/01_coscheduling_qrmi.ipynb
+        path: ./module1/01_coscheduling_qrmi.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 
 - title: "Fluence: a scheduler plugin for Kubernetes"
-  description: A kind cluster on your docker, created from the notebook terminal, with fluence scheduling the pods
+  description: A Usernetes cluster on this instance, started from the notebook terminal, with fluence scheduling QRMI pods
   type: jupyterlab-commands
   icon: ./static/flux-icon.png
   source:
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/module2/01_fluence.ipynb
+        path: ./module2/01_fluence.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 

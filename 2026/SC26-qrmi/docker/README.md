@@ -6,7 +6,7 @@ All commands run from the `qrmi` directory (the build context is that directory,
 ## The base image
 
 This Dockerfile does not start from `fluxrm/flux-sched`, as the SC26 image does. The
-demo needs things that image does not have:
+demo needs things that image does not have.
 
 - a flux-sched with the `coschedule` queue policy, so a held job reserves its cores
 - the flux-quantum jobtap plugin, for admission control, and the cli plugin, for the
@@ -17,13 +17,13 @@ demo needs things that image does not have:
 All of that is the flux-quantum QRMI demo image, built from
 [`examples/qrmi/container/Dockerfile`](https://github.com/converged-computing/flux-quantum/tree/braket-hybrid/examples/qrmi/container)
 in converged-computing/flux-quantum. This Dockerfile layers JupyterLab and the launcher
-on top of it. The default base is:
+on top of it. This is the default base.
 
 ```
 ghcr.io/converged-computing/flux-quantum:qrmi-demo-10-8-2026
 ```
 
-To build the base yourself, from a flux-quantum checkout:
+To build the base yourself, from a flux-quantum checkout.
 
 ```bash
 docker build -f examples/qrmi/container/Dockerfile -t flux-quantum-qrmi .
@@ -40,53 +40,33 @@ cd qrmi
 docker build -f ./docker/Dockerfile -t ghcr.io/flux-framework/flux-tutorial:qrmi .
 ```
 
-Build arguments:
+Build arguments.
 
 | Argument | Default | What it is |
 |---|---|---|
 | `BASE_IMAGE` | `ghcr.io/converged-computing/flux-quantum:qrmi-demo-10-8-2026` | The demo image to layer jupyter on |
 | `NB_USER` | `ubuntu` | The base image's user, which jupyter and the pair run as |
 | `DOCKER_VERSION` | `27.5.1` | The static docker cli, no daemon |
-| `KIND_VERSION` | `v0.32.0` | kind, the release fluence needs for Kubernetes 1.36 gang scheduling. kubectl is the current stable and helm the current 3 at build time |
+| `KIND_VERSION` | `v0.32.0` | kind, the release fluence needs for Kubernetes 1.36 gang scheduling. kubectl is the current stable at build time |
 
 ## Run
 
 ```bash
-docker run --rm -it -p 8888:8888 -v /var/run/docker.sock:/var/run/docker.sock \
-    ghcr.io/flux-framework/flux-tutorial:qrmi
+docker run --rm -it -p 8888:8888 ghcr.io/flux-framework/flux-tutorial:qrmi
 ```
 
 Open the URL with the token that JupyterLab prints.
 
-The socket mount is only for the fluence notebook. On start, `docker-entrypoint` runs
-as root, adds the tutorial user to a group with the socket's gid, and drops to that
-user with `setpriv` before running the command. The host is not modified. Without the
-mount it says so once and carries on, and only the fluence notebook is affected.
+Module 2, the fluence notebook, runs on the tutorial EC2 instance with Usernetes, not in this container. The container covers Module 1. The docker, kind, and kubectl tooling is still in the image if you want to try the fluence manifests against a kind cluster of your own, but the notebook expects the instance.
 
-### How kind reaches the notebook
-
-kind creates its nodes on the host's docker, as siblings of this container, and writes a
-kubeconfig that points at the host's loopback, which is not ours. `kind-up` creates the
-cluster, connects this container to kind's docker network (`docker network connect kind
-$(hostname)`), and exports the internal kubeconfig, so kubectl talks to the control plane
-container directly. This works on Linux and on Docker Desktop. Clusters outlive the
-container; `kind-down` deletes one.
-
-The default cluster is one control plane and two workers on Kubernetes 1.36 with the
-alpha gang scheduling gates on, which is what fluence needs. That config is built into
-`kind-up`, and `tutorial/module2/manifests/kind-config.yaml` is the same file for
-reading. After the cluster is up, `kind-up` checks that the PodGroup API is present and
-exits nonzero with instructions if it is not, which is what happens when an older
-cluster with the same name is reused. `kind-down` and `kind-up` again fixes it.
-
-Tab completion for `kubectl`, `kind`, `helm`, and `docker` is installed image wide, and
+Tab completion for `kubectl`, `kind`, and `docker` is installed image wide, and
 `k` is an alias for `kubectl` with the same completion. The container starts with
 `flux-quantum-start -- jupyter lab`, which is `flux start` with the coschedule config
 and JupyterLab as the instance's initial program, so terminals opened from the sidebar
 have `FLUX_URI` set and are inside the instance. One broker, with as many cores as
 docker gives the container.
 
-To edit notebooks on your host and see changes live, mount over the copied tree:
+To edit notebooks on your host and see changes live, mount over the copied tree.
 
 ```bash
 docker run --rm -it -p 8888:8888 \
@@ -95,7 +75,7 @@ docker run --rm -it -p 8888:8888 \
 ```
 
 To tune the instance, the base image's knobs still apply, for example two brokers
-so the pair can land on different ranks:
+so the pair can land on different ranks.
 
 ```bash
 docker run --rm -it -p 8888:8888 ghcr.io/flux-framework/flux-tutorial:qrmi \
@@ -125,10 +105,6 @@ flux-quantum-demo mock
 # the ibm part, with credentials exported in that terminal first
 flux-quantum-check --ibm
 
-# the fluence notebook, needs the socket mount. Expect one node Ready
-kind-up
-kubectl get nodes
-kind-down
 ```
 
 The mock demo takes about ten seconds and ends with `submit to both done: <n>s` and a
@@ -149,7 +125,6 @@ docker push ghcr.io/flux-framework/flux-tutorial:qrmi
 | `requirements.txt` | JupyterLab, JupyterHub, and the launcher, installed into `/opt/venv` |
 | `entrypoint.sh` | JupyterHub single-user entrypoint |
 | `bin/docker-entrypoint` | Image entrypoint: fixes the docker socket group, drops to the tutorial user |
-| `bin/kind-up`, `bin/kind-down` | Create a kind cluster reachable from the container, and delete it |
 | `flux-icon.png` | Launcher icon |
 
 ## What is different from the SC26 image

@@ -1,0 +1,38 @@
+# The pair from Module 1, in Kubernetes. An indexed Job of two in one group
+# with coordination shared. Index 0 is the scout. It acquires the session and
+# runs the circuit, with a sidecar that watches its task. Index 1 is a worker.
+# It is held with a scheduling gate until the scout's task reaches the device,
+# then released with the scout's session id and submits into that session.
+# The scout holds the session until the worker is done.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hybrid
+spec:
+  completions: 2
+  parallelism: 2
+  completionMode: Indexed
+  template:
+    metadata:
+      labels:
+        app: hybrid
+        fluence.flux-framework.org/group: hybrid
+      annotations:
+        fluence.flux-framework.org/group-size: "2"
+        fluence.flux-framework.org/coordination: shared
+        fluence.flux-framework.org/require-qrmi_type: qiskit-runtime-service
+    spec:
+      schedulerName: fluence
+      restartPolicy: Never
+      containers:
+        - name: sampler
+          image: ghcr.io/converged-computing/fluence-qrmi-workload:latest
+          args: ["--shots", "100"]
+          env:
+            - name: IBM_CLOUD_TOKEN
+              valueFrom: {secretKeyRef: {name: ibm-quantum, key: token, optional: true}}
+            - name: IBM_CLOUD_CRN
+              valueFrom: {secretKeyRef: {name: ibm-quantum, key: crn, optional: true}}
+          resources:
+            requests: {cpu: "1", fluxion.flux-framework.org/qpu: "1"}
+            limits: {fluxion.flux-framework.org/qpu: "1"}
