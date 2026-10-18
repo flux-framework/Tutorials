@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Flux tutorial image for the QRMI coscheduling demo.
 #
-# Build from the qrmi directory (the build context is that directory, not docker/):
+# Build from the qrmi directory (the build context is that directory, not docker/).
 #   docker build -f ./docker/Dockerfile -t ghcr.io/flux-framework/flux-tutorial:qrmi .
 #
 # Run locally. The docker socket is for the fluence notebook, which creates a
@@ -18,7 +18,7 @@
 # This file layers JupyterLab and the launcher on top of it, the way the SC26
 # image layers them on fluxrm/flux-sched:noble.
 #
-# To use a base you built yourself:
+# To use a base you built yourself.
 #   docker build -f ./docker/Dockerfile --build-arg BASE_IMAGE=flux-quantum-qrmi \
 #       -t ghcr.io/flux-framework/flux-tutorial:qrmi .
 ARG BASE_IMAGE=ghcr.io/converged-computing/flux-quantum:qrmi-demo-10-8-2026
@@ -68,19 +68,17 @@ RUN set -eu; arch=$(dpkg --print-architecture); \
     kver=$(curl -fsSL https://dl.k8s.io/release/stable.txt); \
     curl -fsSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/${kver}/bin/linux/${arch}/kubectl"; \
     chmod +x /usr/local/bin/kubectl; \
-    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash; \
-    docker --version; kind --version; kubectl version --client; helm version
+    docker --version; kind --version; kubectl version --client
 
 # Tab completion in every terminal. bash-completion loads these lazily on the
 # first Tab for each command, and the system bashrc turns bash-completion on
 # for interactive shells, which is what a JupyterLab terminal is. k is kubectl.
 RUN kubectl completion bash > /usr/share/bash-completion/completions/kubectl \
     && kind completion bash > /usr/share/bash-completion/completions/kind \
-    && helm completion bash > /usr/share/bash-completion/completions/helm \
     && docker completion bash > /usr/share/bash-completion/completions/docker \
     && cat >> /etc/bash.bashrc <<'BASHRC'
 
-# flux tutorial: completion for kubectl, kind, helm, docker, and k
+# flux tutorial. Completion for kubectl, kind, docker, and k
 if ! shopt -oq posix && [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
 fi
@@ -113,15 +111,15 @@ EXPOSE 8888
 
 # The entrypoint starts as root so it can make a mounted docker socket usable
 # by the tutorial user, then drops to that user with setpriv and execs the
-# command. kind-up and kind-down wrap kind for the fluence notebook.
-COPY ./docker/bin/docker-entrypoint ./docker/bin/kind-up ./docker/bin/kind-down /usr/local/bin/
+# command.
+COPY ./docker/bin/docker-entrypoint /usr/local/bin/
 COPY ./docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["tini", "--", "docker-entrypoint"]
 
 USER root
-WORKDIR ${HOME}
+WORKDIR ${HOME}/tutorial
 
-# flux-quantum-start is the base image's entrypoint: it writes the coschedule
+# flux-quantum-start is the base image's entrypoint. It writes the coschedule
 # config, runs flux start with it, and the instance's initial program
 # (flux-quantum-init) populates the vendor devices into the graph before
 # running what follows the --. JupyterLab is that program, so every terminal

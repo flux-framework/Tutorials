@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Check that the AWS resources for the Flux QRMI tutorial JupyterHub exist.
-# This is the SC26-qrmi hub, separate from the SC26 hub: it has its own Name
+# This is the SC26-qrmi hub, separate from the SC26 hub. It has its own Name
 # and Project tags so the two can run side by side in the same region and
 # share the security group, role, and instance profile.
-# Prints the command to create anything missing; if nothing is missing,
+# Prints the command to create anything missing. If nothing is missing,
 # prints the run-instances command for the hub.
 #
 # Run from the directory that contains ec2/*.json.
@@ -14,7 +14,7 @@ set -uo pipefail
 REGION="${REGION:-us-east-1}"
 EXPECTED_ACCOUNT_ID="${EXPECTED_ACCOUNT_ID:-633731392008}"
 INSTANCE_TYPE="${INSTANCE_TYPE:-hpc7g.16xlarge}"
-AMI_ID="${AMI_ID:-ami-0329e2bc278c6fcb7}"
+AMI_ID="${AMI_ID:-ami-0e16d3f6d409182d3}"
 KEY_NAME="${KEY_NAME:-ed-the-dinosaur}"
 SG_ID="${SG_ID:-sg-0ddfbe3cd0f9253d3}"
 SG_NAME="${SG_NAME:-JupyterHub-Hub-SG}"

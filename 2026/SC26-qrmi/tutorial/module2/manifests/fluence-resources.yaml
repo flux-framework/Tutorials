@@ -1,4 +1,4 @@
-# The modeled resources, in one file: the config that describes them, and the
+# The modeled resources, in one file. The config that describes them, and the
 # device plugin that advertises them. Apply this right after fluence.yaml and
 # before any pod, so the scheduler and the webhook read the config at their
 # first start and nothing has to be restarted.
@@ -12,8 +12,8 @@
 # models. The scheduler builds graph vertices from it, the device plugin
 # derives what to advertise from the same document, and the webhook derives
 # the FLUXION_<KEY> environment it injects from the attribute keys. The three
-# cannot drift. Each backend is a resource tree attached under the cluster: a
-# qdevice carrying a requestable qpu, whose attributes become filterable graph
+# cannot drift. Each backend is a resource tree attached under the cluster. A
+# qdevice with a requestable qpu, whose attributes become filterable graph
 # properties and injected environment.
 apiVersion: v1
 kind: ConfigMap
@@ -46,7 +46,7 @@ data:
         vendor: ibm
         qrmi_type: qiskit-runtime-service
 ---
-# Device plugin: advertises the exotic Fluxion resource types (derived from the
+# Device plugin. Advertises the exotic Fluxion resource types (derived from the
 # resources config above) on every node, so pods can request them via resources
 # and NodeResourcesFit is satisfied.
 apiVersion: apps/v1

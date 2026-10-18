@@ -339,13 +339,17 @@ sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
 # Clone usernetes and usernetes-python
 git clone https://github.com/rootless-containers/usernetes ~/usernetes
 
-# fluence needs Kubernetes 1.36 with the alpha gang scheduling API on, which is
-# what its own kind config sets. usernetes main is on a 1.37 base and turns
-# none of it on, so pin the node image and add the same flags to kubeadm.
-# start-usernetes.sh rebuilds usernetes_node from this Dockerfile, and the node
-# reads kubeadm-config.yaml from this directory, so the edits stick.
-sed -i 's|^ARG BASE_IMAGE=.*|ARG BASE_IMAGE=docker.io/kindest/node:v1.36.1|' ~/usernetes/Dockerfile
-grep -q "^ARG BASE_IMAGE=docker.io/kindest/node:v1.36.1$" ~/usernetes/Dockerfile
+# fluence needs Kubernetes 1.36. Its PodGroup manifests use the alpha
+# scheduling.k8s.io/v1alpha2 API, which 1.37 replaced with v1alpha3. usernetes
+# main is on 1.37, so check out d527e87, the last usernetes commit built for
+# 1.36.1. The whole tree is pinned, not only the base image. The 1.37 update
+# also changed kubeadm-config.yaml, and the node does not start containerd
+# with a 1.37 tree on a 1.36 base. Then turn the gang API on in kubeadm, the
+# same flags fluence's kind config sets. start-usernetes.sh rebuilds
+# usernetes_node from this checkout and the node reads kubeadm-config.yaml from
+# it, so both stick.
+git -C ~/usernetes checkout d527e87
+grep -q "kindest/node:v1.36.1" ~/usernetes/Dockerfile
 python3 - ~/usernetes/kubeadm-config.yaml <<'PATCH'
 import sys
 path = sys.argv[1]
@@ -415,9 +419,10 @@ wget https://nodejs.org/dist/v20.15.0/node-v20.15.0-linux-arm64.tar.xz && \
 
 # This customizes the launcher UI
 # https://jupyter-app-launcher.readthedocs.io/en/latest/usage.html
-sudo python3 -m pip install jupyter_app_launcher --break-system-packages && \
-sudo python3 -m pip install --upgrade jupyter-server --break-system-packages && \
-sudo python3 -m pip install jupyter-launcher-shortcuts --break-system-packages && \
+# jupyter labextension list
+sudo python3 -m pip install jupyterlab jupyter_app_launcher --break-system-packages
+sudo python3 -m pip install --upgrade jupyter-server --break-system-packages
+sudo python3 -m pip install jupyter-launcher-shortcuts --break-system-packages
 sudo python3 -m pip install jupyterhub_idle_culler --break-system-packages
 sudo mkdir -p /usr/local/share/jupyter/lab/jupyter_app_launcher
 python3 -m pip install jupyterhub boto3 --break-system-packages
@@ -465,14 +470,21 @@ docker build -t usernetes_node .
 ################################################################
 #
 # Additions for the flux-quantum QRMI tutorial. Everything above is the SC26
-# build. Below: qrmi and the ibmcloud cli, flux-quantum with its jobtap plugin
+# build. Below. qrmi and the ibmcloud cli, flux-quantum with its jobtap plugin
 # and demo scripts. The fluence module runs on the usernetes cluster above,
-# with the node image pinned and the gang gates added where it is cloned.
+# pinned to Kubernetes 1.36 with the gang gates added where it is cloned, and
+# the fluence image is pulled and checked for this architecture at the end.
 
 # qrmi into the python flux uses (/usr/bin/python3). It needs a newer cffi
 # than debian ships, pip owns cffi already from the flux-core step above.
-sudo python3 -m pip install --break-system-packages "qrmi[ibm]"
-python3 -c "from qrmi import ResourceType; assert hasattr(ResourceType, 'IBMQiskitRuntimeService'), 'this qrmi dropped the legacy ibm type, pin an older one'"
+# qiskit and qiskit-ibm-runtime are named explicitly. The workload builds its
+# circuit with qiskit, and the notebook lists backends with qiskit_ibm_runtime.
+# into the interpreter flux uses, named explicitly, and checked with flux python,
+# since that is what runs the workload. python3 on PATH is not always the same one.
+FLUX_PYTHON=$(flux python -c 'import sys; print(sys.executable)')
+sudo "$FLUX_PYTHON" -m pip install --break-system-packages "qrmi[ibm]" qiskit qiskit-ibm-runtime
+flux python -c "import qiskit, qiskit_ibm_runtime, qrmi; print('qiskit', qiskit.__version__, 'qiskit-ibm-runtime', qiskit_ibm_runtime.__version__)"
+flux python -c "from qrmi import ResourceType; assert hasattr(ResourceType, 'IBMQiskitRuntimeService'), 'this qrmi dropped the legacy ibm type, pin an older one'"
 curl -fsSL https://clis.cloud.ibm.com/install/linux | sudo sh
 
 # flux-quantum, the same clone the cluster's start-script makes, editable.
@@ -483,7 +495,7 @@ sudo mkdir -p /etc/flux/system/jobtap /etc/flux/system/conf.d
 cd /opt
 sudo git clone --depth 1 -b braket-hybrid https://github.com/converged-computing/flux-quantum && \
     sudo chown -R ubuntu /opt/flux-quantum && \
-    sudo python3 -m pip install --break-system-packages -e /opt/flux-quantum && \
+    sudo "$FLUX_PYTHON" -m pip install --break-system-packages -e /opt/flux-quantum && \
     flux python -c "from flux_quantum.cli import QuantumCLIPlugin; print('flux_quantum importable')" && \
     rm -f /opt/flux-quantum/flux_quantum/jobtap/quantum.so && \
     make -C /opt/flux-quantum/flux_quantum/jobtap && \
@@ -497,12 +509,20 @@ echo "export FLUX_CLI_PLUGINPATH=/opt/flux-quantum/cli-plugins" >> ~/.bashrc
 echo "export FLUX_QUANTUM_MOCK=1" >> ~/.bashrc
 echo "export FLUX_QUANTUM_JOBTAP=/etc/flux/system/jobtap/quantum.so" >> ~/.bashrc
 echo "export FLUX_URI_RESOLVE_LOCAL=t" >> ~/.bashrc
-echo "export JUPYTER_APP_LAUNCHER_PATH=/usr/local/share/jupyter/lab/jupyter_app_launcher/" >> ~/.bashrc
 
 # A kernel on flux python, so a notebook opens without a kernel prompt
-sudo python3 -m ipykernel install --name flux --display-name "Python 3 (flux python)"
+sudo "$FLUX_PYTHON" -m ipykernel install --name flux --display-name "Python 3 (flux python)"
 
 # kubectl completion and a k alias for the fluence module
 kubectl completion bash | sudo tee /usr/share/bash-completion/completions/kubectl >/dev/null
 echo "alias k=kubectl" >> ~/.bashrc
 echo "complete -o default -F __start_kubectl k 2>/dev/null || true" >> ~/.bashrc
+
+# The fluence image is published for amd64 and arm64. Pull it here as a check
+# that the build for this architecture exists. The usernetes node pulls its own
+# copy when the pods start, along with the sidecar and QRMI workload images.
+docker pull ghcr.io/converged-computing/fluence:latest
+docker pull busybox
+want=$(dpkg --print-architecture)
+got=$(docker image inspect --format '{{.Architecture}}' ghcr.io/converged-computing/fluence:latest)
+[ "$got" = "$want" ] || { echo "fluence image is $got, this machine is $want. Publish an arm64 build of ghcr.io/converged-computing/fluence first." >&2; exit 1; }
