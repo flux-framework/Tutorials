@@ -1,28 +1,15 @@
 #!/usr/bin/env python3
-"""The classical half of a coscheduled pair, talking to the QPU through QRMI.
+"""The classical half of a coscheduled pair.
 
-By the time this runs, the scout has opened the vendor session and posted it
-to this job's eventlog as a memo. The wrapper the plugin put around this
-command read that memo and put the session in our environment, so there is
-nothing to wait for. Each step of what this script does is its own function:
-
-    print_quantum_environment   what the pair handed us, by name
-    read_session                the session id, or stop if there is none
-    connect_to_resource         a QRMI QuantumResource joined to that session
-    build_circuit               a Bell state, or GHZ if wider
-    transpile_for_device        into the device's basis gates
-    run_sampler                 submit it into the session
-    wait_for_task               poll until it is final
-    report_counts               the counts and how many shots were ideal
-    linger                      stay alive long enough to be watched
+The scout opened the vendor session and posted it to this job's eventlog as a
+memo. The wrapper put it in our environment, so there is nothing to wait for.
+Each step is a function, called in order from main.
 
     flux submit -t 5m --quantum-vendor ibm --quantum-device ibm_kingston \\
         -n1 -- flux python workload.py --shots 100 --linger 0
 
 Under the mock vendor there is a session and no QPU, so the script prints its
-environment, lingers, and exits. The same submit is the token free rehearsal.
-qrmi and qiskit are imported at the top. If they are missing, the ImportError
-says so and that is the right answer.
+environment, lingers, and exits.
 """
 
 import argparse
@@ -37,45 +24,28 @@ from qrmi.primitives.ibm import SamplerV2, get_target
 
 from flux_quantum.backends.qrmi import resource_type
 
-# The variables the pair sets. QUANTUM_SESSION_ID is flux-quantum's own name.
-# The rest are QRMI's job-side contract: whichever workload manager acquired
-# the QPU (QRMI's Slurm or LSF plugins, or flux-quantum here) names the
-# resource and its type this way, and get_job_qpu_resources_and_types reads
-# them. This script only knows the job side, so it is portable across them.
-HANDOFF = (
-    "QUANTUM_SESSION_ID",
-    "QRMI_JOB_QPU_RESOURCES",
-    "QRMI_JOB_QPU_TYPES",
-)
+# QUANTUM_SESSION_ID is flux-quantum's name for the session. The other two are
+# QRMI's job side contract, the same names its Slurm and LSF plugins set.
+HANDOFF = ("QUANTUM_SESSION_ID", "QRMI_JOB_QPU_RESOURCES", "QRMI_JOB_QPU_TYPES")
+
+# QRMI reads the session id under <resource> plus this. A handle, not a secret.
 ACQUISITION_TOKEN = "_QRMI_JOB_ACQUISITION_TOKEN"
 
 
 def section(title):
-    print()
-    print("== {} ==".format(title))
+    print("\n== {} ==".format(title))
 
 
 def print_quantum_environment():
-    """Everything quantum related in the environment, by name.
-
-    The handoff variables are printed with their values. They carry the
-    session id, which is a handle on an open session: it is useless without
-    the api key and stops meaning anything when the scout closes the session.
-    <resource>_QRMI_JOB_ACQUISITION_TOKEN is that handle under the name QRMI
-    reads, and connect_to_resource prints it as "handle".
-    Everything else with QRMI in its name is a credential or a setting, and
-    only its name is printed.
-    """
+    """Every quantum variable by name. Values only for the handoff and the handle."""
     section("quantum environment")
     print("{:<44} {}".format("FLUX_JOB_ID", os.environ.get("FLUX_JOB_ID", "?")))
     for name in HANDOFF:
         print("{:<44} {}".format(name, os.environ.get(name, "(unset)")))
-    handoff = set(HANDOFF)
     for name in sorted(os.environ):
-        if name in handoff or "QRMI" not in name and "QUANTUM" not in name:
+        if name in HANDOFF or ("QRMI" not in name and "QUANTUM" not in name):
             continue
         if name.endswith(ACQUISITION_TOKEN):
-            # QRMI's name for the session handle. Not a secret, see above.
             print("{:<44} {}".format(name, os.environ[name]))
         else:
             print("{:<44} (set, value not shown)".format(name))
@@ -93,39 +63,22 @@ def read_session():
 
 
 def connect_to_resource(session):
-    """A QuantumResource for the QPU the pair was given, joined to the session.
-
-    QRMI reads <resource>_QRMI_JOB_ACQUISITION_TOKEN as a preset session id,
-    so this resource submits into the scout's session without acquiring one
-    of its own. No acquire, no release, the scout owns the session.
-    """
+    """A QuantumResource joined to the scout's session. No acquire, no release."""
     resources, types = get_job_qpu_resources_and_types()
     resource, rtype = resources[0], types[0]
-    print("resource:", resource, "type", rtype)
     handle = os.environ.get(resource + ACQUISITION_TOKEN)
-    print(
-        "handle:  ",
-        handle,
-        "(same as the session)" if handle == session else "(DIFFERS from the session)",
-    )
+    print("resource:", resource, "type", rtype)
+    print("handle:  ", handle, "(same as the session)" if handle == session else "(DIFFERS)")
     qr = QuantumResource(resource, resource_type(rtype))
     meta = qr.metadata()
-    print(
-        "metadata:",
-        {
-            k: meta[k]
-            for k in sorted(meta)
-            if k in ("session_id", "backend_name", "backend_status")
-        },
-    )
+    print("backend: ", meta.get("backend_name"), meta.get("backend_status"))
     if meta.get("session_id") not in (None, session):
         print("WARNING QRMI thinks the session is", meta.get("session_id"))
     return qr
 
 
 def build_circuit(qubits):
-    """A Bell state, or a GHZ state if wider. Every shot should come back all
-    zeros or all ones."""
+    """A Bell state, or GHZ if wider. Every shot should be all zeros or all ones."""
     qc = QuantumCircuit(qubits)
     qc.h(0)
     for q in range(1, qubits):
@@ -135,8 +88,7 @@ def build_circuit(qubits):
 
 
 def transpile_for_device(qc, qr):
-    """The circuit has to be in the device's basis before IBM accepts it, so
-    transpile against the target QRMI reads back from the backend."""
+    """Into the device's basis gates, from the target QRMI reads back."""
     target = get_target(qr)
     isa = generate_preset_pass_manager(optimization_level=1, target=target).run(qc)
     print("circuit: ", dict(isa.count_ops()))
@@ -144,10 +96,10 @@ def transpile_for_device(qc, qr):
 
 
 def run_sampler(qr, isa, shots):
-    """Submit the circuit into the session through the QRMI SamplerV2."""
+    """Submit the circuit into the session."""
     sampler = SamplerV2(qr, options={"default_shots": shots})
     job = sampler.run([isa])
-    print("task:    ", job.job_id(), "submitted into the session")
+    print("task:    ", job.job_id())
     return job
 
 
@@ -163,12 +115,12 @@ def wait_for_task(job, interval=2.0):
         time.sleep(interval)
     print("status:  ", job.status(), "after {:.0f}s".format(time.time() - started))
     if job.errored():
-        print("logs:")
         print(job.logs())
         sys.exit("the task failed")
 
 
 def report_counts(job, qubits, shots):
+    """The counts, and how many shots were all zeros or all ones."""
     counts = job.result()[0].data.meas.get_counts()
     print("counts:  ", dict(sorted(counts.items(), key=lambda kv: -kv[1])))
     ideal = {"0" * qubits, "1" * qubits}
@@ -177,39 +129,30 @@ def report_counts(job, qubits, shots):
 
 
 def linger(seconds, step=5):
-    """Stay alive so the job can be seen running. The session is open the
-    whole time, so on a real device keep this short, or pass --linger 0."""
+    """Stay alive so the job can be watched. The session is open the whole time."""
     if seconds <= 0:
         return
     section("lingering for {}s so the job can be watched".format(seconds))
-    left = seconds
-    while left > 0:
-        print("working, {}s left".format(left), flush=True)
-        time.sleep(min(step, left))
-        left -= step
+    while seconds > 0:
+        print("working, {}s left".format(seconds))
+        time.sleep(min(step, seconds))
+        seconds -= step
     print("done")
 
 
 def main():
+    sys.stdout.reconfigure(line_buffering=True)
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--shots", type=int, default=100)
-    ap.add_argument(
-        "--qubits", type=int, default=2, help="width of the GHZ/Bell circuit, 2"
-    )
-    ap.add_argument(
-        "--linger",
-        type=int,
-        default=30,
-        help="seconds to stay alive after the work, so the job can be watched, 30",
-    )
+    ap.add_argument("--qubits", type=int, default=2, help="width of the circuit")
+    ap.add_argument("--linger", type=int, default=30, help="seconds to stay alive after")
     args = ap.parse_args()
 
     print_quantum_environment()
     session = read_session()
 
+    # the mock vendor hands over a session and no resource
     if not os.environ.get("QRMI_JOB_QPU_RESOURCES"):
-        # the mock vendor hands over a session and no resource. The handoff
-        # worked, and that is all a rehearsal can show.
         print("resource: none, a rehearsal with no QPU. Nothing submitted.")
         linger(args.linger)
         return
