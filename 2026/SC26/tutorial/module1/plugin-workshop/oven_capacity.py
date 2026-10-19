@@ -43,7 +43,8 @@ class Validator(ValidatorPlugin):
                 f"order needs {ncores} cores, the oven fits {self.max_cores}",
             )
 
-        name = job.jobspec["attributes"]["system"].get("job_name", "")
+        # --job-name lands in the jobspec at attributes.system.job.name
+        name = job.jobspec["attributes"]["system"].get("job", {}).get("name", "")
         banned = BANNED & set(name.lower().split("-"))
         if banned:
             return (errno.EINVAL, f"we do not serve {', '.join(sorted(banned))}")
