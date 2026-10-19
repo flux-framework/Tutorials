@@ -30,7 +30,7 @@ plugin.register {
     {
       -- Fires once each local task has exited.
       -- Available: everything above, plus task.info.exitcode and
-      -- task.info.signaled.
+      -- task.info.signaled (a signal number, 0 when the task was not signaled).
       topic = "task.exit",
       fn = function ()
         -- YOUR CODE HERE.
@@ -53,7 +53,7 @@ plugin.register {
 
 -- Ideas, if you want them:
 --
---   * Time each task with os.clock() and print the slowest one.
+--   * Time each task with os.time() and print the slowest one.
 --   * Stamp every task with an environment variable in a "task.init" handler,
 --     using task.setenv().
 --   * Count tasks per shell rank and log the total in shell.finish.

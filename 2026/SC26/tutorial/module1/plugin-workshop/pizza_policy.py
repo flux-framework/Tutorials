@@ -42,7 +42,9 @@ class Validator(ValidatorPlugin):
         # Ideas:
         #   * Cap ncores and reject anything over the limit
         #   * Reject a command by name, and say why
-        #   * Require a job name, via job.jobspec["attributes"]["system"]
+        #   * Require a job name. --job-name lands in the jobspec at
+        #     job.jobspec["attributes"]["system"]["job"]["name"], and the
+        #     "job" key is absent when no name was given.
         #   * Only allow submissions during business hours
         #   * Reject anything asking for zero nodes, on principle
         return None

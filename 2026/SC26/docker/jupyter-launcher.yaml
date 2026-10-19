@@ -1,5 +1,5 @@
 - title: "Module 1.1: Flux Foundations"
-  description: Submission, batch jobs, the hierarchy, and the oven packing puzzle
+  description: Submission, batch jobs, and the hierarchy
   type: jupyterlab-commands
   icon: ./static/flux-icon.png
   source:
@@ -23,7 +23,7 @@
   catalog: Notebook
 
 - title: "Module 1.3: Instances, Internals, and Plugins"
-  description: The plumbing under the porcelain, then write your own job shell plugin
+  description: The plumbing under the porcelain, then write your own job validator plugin
   type: jupyterlab-commands
   icon: ./static/flux-icon.png
   source:

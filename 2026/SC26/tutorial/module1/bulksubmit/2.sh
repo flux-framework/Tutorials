@@ -1,4 +1,5 @@
 #!/bin/bash
+# Step 3 of 8 of a Chicago-style hot dog. See the side quests in notebook 1.
 
-echo "For those who take, but do not earn,"
+echo "Yellow mustard only. Not Dijon. On this we insist."
 sleep 1

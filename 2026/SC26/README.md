@@ -26,8 +26,8 @@ is a flat pizza. `flux uptime` tells you which layer you are standing on.
 
 ## Interactive pieces
 
-- **Oven packing puzzle** (Module 1, notebook 1) — six pizzas with different core counts and bake times. The user needs to pack them for the shortest makespan.
-- **Plugin workshop** (Module 1, notebook 3) — a half-written **Python** job validator in [`plugin-workshop/`](tutorial/module1/plugin-workshop). We give the class and the resource lookups and attendees write the policy decision.
+- **Side quests** (Module 1, end of every notebook) — optional ten-minute challenges with folded-up answers: chain the Chicago hot dog scripts with `--dependency`, pack six pizzas into a six-core `flux alloc`, find out why a job died from its eventlog, write a `flux menu` subcommand, and more.
+- **Plugin workshop** (Module 1, notebook 3) — a half-written **Python** job validator in [`plugin-workshop/`](tutorial/module1/plugin-workshop). We give the class and the resource lookups and attendees write the policy decision. A Lua job shell plugin skeleton is there too.
 - **Deep Dish Trivia** (Module 3) — 24 questions, 4 rounds, a joke between each. Self-contained static page in [`trivia/`](tutorial/module3/trivia).
 
 ## Building and running the container

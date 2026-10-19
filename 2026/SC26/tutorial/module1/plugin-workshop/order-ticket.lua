@@ -26,7 +26,7 @@ plugin.register {
         if info.exitcode and info.exitcode ~= 0 then
           shell.log_error (string.format ("ticket %d burned (exit %d)",
                                           info.rank, info.exitcode))
-        elseif info.signaled then
+        elseif info.signaled and info.signaled ~= 0 then
           shell.log_error (string.format ("ticket %d was dropped (signal %d)",
                                           info.rank, info.signaled))
         else
