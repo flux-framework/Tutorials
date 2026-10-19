@@ -403,8 +403,8 @@ python3 -m pip install git+https://github.com/kubeflow/sdk.git@main#subdirectory
 sudo python3 -m pip install river riverapi --break-system-packages
 sudo python3 -m pip install ipywidgets --break-system-packages
 
-# For Chapter 5: hybrid quantum-classical QAOA on AWS Braket SV1
-sudo python3 -m pip install amazon-braket-sdk scipy --break-system-packages
+# For Module 2.4: hybrid quantum-classical QAOA on a local qiskit-aer simulator
+sudo python3 -m pip install amazon-braket-sdk qiskit qiskit-aer scipy --break-system-packages
 sudo python3 -m pip install jupyterlab --break-system-packages
 sudo apt-get install -y bash-completion
 
