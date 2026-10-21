@@ -1,0 +1,33 @@
+# The same pair as hybrid-gang.yaml, labeled as a rehearsal. The webhook sets
+# FLUENCE_REHEARSAL=true on the sampler and the sidecar. The scout prints the
+# backend it was given and submits nothing, and the sidecar releases the
+# worker with no session. Without the label, a scout that submits nothing is
+# an error and the worker stays gated.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hybrid-rehearsal
+spec:
+  completions: 2
+  parallelism: 2
+  completionMode: Indexed
+  template:
+    metadata:
+      labels:
+        app: hybrid
+        fluence.flux-framework.org/group: hybrid
+        fluence.flux-framework.org/rehearsal: "true"
+      annotations:
+        fluence.flux-framework.org/group-size: "2"
+        fluence.flux-framework.org/coordination: shared
+        fluence.flux-framework.org/require-qrmi_type: qiskit-runtime-service
+    spec:
+      schedulerName: fluence
+      restartPolicy: Never
+      containers:
+        - name: sampler
+          image: ghcr.io/converged-computing/fluence-qrmi-workload:latest
+          args: ["--shots", "100"]
+          resources:
+            requests: {cpu: "1", fluxion.flux-framework.org/qpu: "1"}
+            limits: {fluxion.flux-framework.org/qpu: "1"}

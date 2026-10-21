@@ -86,7 +86,7 @@ c.EC2Spawner.start_timeout = 300
 
 # The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-c.EC2Spawner.ami = "ami-0e16d3f6d409182d3"
+c.EC2Spawner.ami = "ami-043970c35afd3a127"
 
 # Instance type for each user's server.
 # 't4g.2xlarge' is what had a maximum fom per core ratio in my experiments
