@@ -14,7 +14,7 @@ set -uo pipefail
 REGION="${REGION:-us-east-1}"
 EXPECTED_ACCOUNT_ID="${EXPECTED_ACCOUNT_ID:-633731392008}"
 INSTANCE_TYPE="${INSTANCE_TYPE:-hpc7g.16xlarge}"
-AMI_ID="${AMI_ID:-ami-0e16d3f6d409182d3}"
+AMI_ID="${AMI_ID:-ami-043970c35afd3a127}"
 KEY_NAME="${KEY_NAME:-ed-the-dinosaur}"
 SG_ID="${SG_ID:-sg-0ddfbe3cd0f9253d3}"
 SG_NAME="${SG_NAME:-JupyterHub-Hub-SG}"

@@ -145,7 +145,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--shots", type=int, default=100)
     ap.add_argument("--qubits", type=int, default=2, help="width of the circuit")
-    ap.add_argument("--linger", type=int, default=30, help="seconds to stay alive after")
+    ap.add_argument("--linger", type=int, default=20, help="seconds to stay alive after")
     args = ap.parse_args()
 
     print_quantum_environment()
