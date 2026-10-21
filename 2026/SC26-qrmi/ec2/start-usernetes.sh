@@ -6,7 +6,7 @@ docker build --no-cache -t usernetes_node .
 cd -
 
 make -C /home/ubuntu/usernetes up
-sleep 10
+sleep 15
 make -C /home/ubuntu/usernetes kubeadm-init
 sleep 15
 make -C /home/ubuntu/usernetes install-flannel
