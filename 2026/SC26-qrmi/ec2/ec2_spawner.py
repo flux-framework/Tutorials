@@ -27,7 +27,7 @@ class EC2Spawner(Spawner):
     """
 
     ami = Unicode(
-        "ami-0e16d3f6d409182d3",
+        "ami-043970c35afd3a127",
         config=True,
         help="The AMI ID for the Flux + Usernetes VM.",
     )
