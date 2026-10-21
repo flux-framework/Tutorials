@@ -1,0 +1,31 @@
+#!/bin/bash
+# Runs as root, once, then drops to the tutorial user and execs the command.
+#
+# If the host's docker socket is mounted in, make it usable by the tutorial
+# user: create a group in this container with the socket's gid and add the
+# user to it. Nothing on the host is changed. Without the socket, kind and
+# docker simply are not available and the rest of the tutorial is unaffected.
+set -eu
+NB_USER=${NB_USER:-ubuntu}
+SOCK=/var/run/docker.sock
+
+if [ "$(id -u)" -ne 0 ]; then
+    # started with --user, nothing to fix, just run
+    exec "$@"
+fi
+
+if [ -S "$SOCK" ]; then
+    gid=$(stat -c %g "$SOCK")
+    if ! getent group "$gid" >/dev/null; then
+        groupadd -g "$gid" docker-host
+    fi
+    usermod -aG "$(getent group "$gid" | cut -d: -f1)" "$NB_USER"
+    echo "docker-entrypoint: docker socket mounted, $NB_USER can use docker and kind" >&2
+else
+    echo "docker-entrypoint: no docker socket mounted, kind is unavailable (add -v /var/run/docker.sock:/var/run/docker.sock)" >&2
+fi
+
+home=$(getent passwd "$NB_USER" | cut -d: -f6)
+cd "$home"
+exec setpriv --reuid="$NB_USER" --regid="$NB_USER" --init-groups \
+    env HOME="$home" USER="$NB_USER" LOGNAME="$NB_USER" "$@"

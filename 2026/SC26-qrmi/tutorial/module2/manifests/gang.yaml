@@ -1,0 +1,44 @@
+# A gang of two. The group label is all it takes. fluence's webhook creates
+# the PodGroup, sizes it from the Job, and links the pods to it. Each worker
+# estimates pi from its own random samples, so there is something to watch.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: training
+spec:
+  completions: 2
+  parallelism: 2
+  completionMode: Indexed
+  template:
+    metadata:
+      labels:
+        fluence.flux-framework.org/group: training
+    spec:
+      schedulerName: fluence
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: python:3.12-slim
+          env:
+            - name: WORKERS
+              value: "2"
+          command: ["python", "-u", "-c"]
+          args:
+            - |
+              import os, random, socket, time
+              i = int(os.environ["JOB_COMPLETION_INDEX"])
+              n = int(os.environ["WORKERS"])
+              samples = 60_000_000
+              random.seed(i)
+              inside = 0
+              start = time.time()
+              for k in range(1, samples + 1):
+                  x, y = random.random(), random.random()
+                  inside += x * x + y * y <= 1.0
+                  if k % (samples // 5) == 0:
+                      print(f"worker {i} of {n}: {k} samples, pi so far {4 * inside / k:.5f}")
+              print(f"worker {i} of {n} on {socket.gethostname()}: pi = {4 * inside / samples:.5f} in {time.time() - start:.0f}s")
+          resources:
+            requests:
+              cpu: "1"
+              memory: 128Mi
