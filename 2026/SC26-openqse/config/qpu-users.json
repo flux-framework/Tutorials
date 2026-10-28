@@ -1,0 +1,40 @@
+{
+  "users": {
+    "user-a": {
+      "enabled": true,
+      "devices": {
+        "ornl-iqm-20q": {
+          "enabled": true,
+          "api_key": ""
+        },
+        "fake-iqm-20q": {
+          "enabled": true
+        }
+      }
+    },
+    "user-b": {
+      "enabled": true,
+      "devices": {
+        "ornl-iqm-20q": {
+          "enabled": true,
+          "api_key": ""
+        },
+        "fake-iqm-20q": {
+          "enabled": true
+        }
+      }
+    },
+    "user-c": {
+      "enabled": true,
+      "devices": {
+        "ornl-iqm-20q": {
+          "enabled": true,
+          "api_key": ""
+        },
+        "fake-iqm-20q": {
+          "enabled": true
+        }
+      }
+    }
+  }
+}

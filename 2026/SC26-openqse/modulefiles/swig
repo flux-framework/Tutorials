@@ -1,0 +1,16 @@
+#%Module1.0
+##
+## SWIG 4.3 built from source into /usr/local (DEFw needs 4.3 or newer).
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds the system SWIG installation to the environment."
+}
+
+module-whatis "System SWIG"
+
+set root /usr/local
+
+prepend-path PATH            $root/bin
+prepend-path MANPATH         $root/share/man
+setenv SWIG_ROOT             $root

@@ -1,0 +1,3 @@
+#!/bin/bash
+# List the jobs that are pending or running, with their names and nodes.
+exec flux jobs -o '{id.f58:>12} {name:<14} {state:<6} {nnodes:>2} {nodelist}' "$@"

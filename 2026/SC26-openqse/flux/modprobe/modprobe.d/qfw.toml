@@ -1,0 +1,15 @@
+# The qfw-service broker module (flux/modules/qfw-service.py): the QFw site
+# service plane as children of the brokers. Loaded on every rank once the
+# resource module is up (a rank with no service assigned idles), and only in
+# an instance whose config has a [qfw] table, so nested and test instances
+# never load it. The rc1 drop-in qfw-service-load.py asks for it.
+#
+# `module` is the file itself, by absolute path, so loading at boot does not
+# depend on FLUX_MODULE_PATH; that variable (set by the image and by
+# docker-compose.yml) only lets `flux module load qfw-service` work by name
+# from a shell.
+[[modules]]
+name = "qfw-service"
+module = "/usr/local/lib/flux/modules/qfw-service.py"
+after = ["resource"]
+needs-config = ["qfw"]

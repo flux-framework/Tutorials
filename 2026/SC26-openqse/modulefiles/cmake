@@ -1,0 +1,17 @@
+#%Module1.0
+##
+## CMake from the Ubuntu noble base image.
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds the system CMake installation to the environment."
+}
+
+module-whatis "System CMake (Ubuntu noble, 3.28)"
+
+set root /usr
+
+prepend-path PATH              $root/bin
+prepend-path MANPATH           $root/share/man
+prepend-path CMAKE_PREFIX_PATH $root
+setenv CMAKE_ROOT              $root

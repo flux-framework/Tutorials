@@ -1,0 +1,12 @@
+# Per-user device access, installed as ~/.qfw/device-access.yaml (0600) by
+# provisioning if absent; edit your copy. credential-db resolves beside this
+# file: ~/.qfw/qpu-users.json holds only your own key.
+qpus:
+  ornl-iqm-20q:
+    provider: iqm
+    provider-device-id: default
+    url: https://qccsw.ccs.ornl.gov/
+    credential-db: qpu-users.json
+  fake-iqm-20q:
+    provider: fake-iqm
+    provider-device-id: fake-iqm-20q

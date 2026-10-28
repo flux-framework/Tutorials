@@ -1,0 +1,23 @@
+#%Module1.0
+##
+## libfabric used by the image OpenMPI/PRRTE installation.
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds the image libfabric installation to the environment."
+}
+
+module-whatis "QFw cluster libfabric"
+
+set root /opt/qfw/libfabric
+
+prepend-path PATH              $root/bin
+prepend-path LD_LIBRARY_PATH   $root/lib
+prepend-path LD_LIBRARY_PATH   $root/lib64
+prepend-path LIBRARY_PATH      $root/lib
+prepend-path LIBRARY_PATH      $root/lib64
+prepend-path CPATH             $root/include
+prepend-path PKG_CONFIG_PATH   $root/lib/pkgconfig
+prepend-path PKG_CONFIG_PATH   $root/lib64/pkgconfig
+prepend-path CMAKE_PREFIX_PATH $root
+setenv LIBFABRIC_ROOT          $root

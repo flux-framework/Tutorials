@@ -1,0 +1,26 @@
+# QFw and DEFw installation roots are supplied by qfw-activate.
+install:
+  qfw-prefix: ${QFW_PREFIX}
+  defw-prefix: ${DEFW_PREFIX}
+
+# qfw-dir-svc publishes its selected host and this port in connection-file.
+directory-service:
+  name: qfw-site-dirsvc
+  listen-port: 8090
+  connect-timeout-seconds: 300
+  connection-file: ${QFW_SHARED_ROOT}/qfw-site-services/directory-service.json
+
+# Device access and credentials are the user's, under ~/.qfw (QFW_DEVICE_ACCESS_CFG
+# is exported by the login profile); the site keeps none.
+service:
+  manifest: ${QFW_PREFIX}/share/qfw/config/services/site-services.yaml
+  device-access-config: ${QFW_DEVICE_ACCESS_CFG}
+
+qpm:
+  completion-queues:
+    retention:
+      completion-ttl-seconds: 3600
+      terminal-reservation-retention-seconds: 3600
+      max-records-per-reservation: 1024
+      max-bytes-per-reservation: 67108864
+      purge-interval-seconds: 60

@@ -1,0 +1,33 @@
+#%Module1.0
+##
+## CPU TNQVM stack built independently by QFw's dependency builder.
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds the image TNQVM, XACC, and ExaTN stack to the environment."
+}
+
+module-whatis "TNQVM CPU stack for QFw"
+
+set root /opt/openqse/tnqvm
+set xacc $root/xacc
+set exatn $root/exatn
+
+prepend-path PATH              $root/bin
+prepend-path LD_LIBRARY_PATH   $xacc/plugins
+prepend-path LD_LIBRARY_PATH   $xacc/lib
+prepend-path LD_LIBRARY_PATH   $xacc/lib64
+prepend-path LD_LIBRARY_PATH   $exatn/plugins
+prepend-path LD_LIBRARY_PATH   $exatn/lib
+prepend-path LD_LIBRARY_PATH   $exatn/lib64
+prepend-path LIBRARY_PATH      $xacc/lib
+prepend-path LIBRARY_PATH      $xacc/lib64
+prepend-path LIBRARY_PATH      $exatn/lib
+prepend-path LIBRARY_PATH      $exatn/lib64
+prepend-path PYTHONPATH        $xacc
+prepend-path PYTHONPATH        $exatn
+prepend-path CMAKE_PREFIX_PATH $xacc
+prepend-path CMAKE_PREFIX_PATH $exatn
+setenv TNQVM_ROOT              $root
+setenv XACC_ROOT               $xacc
+setenv EXATN_ROOT              $exatn

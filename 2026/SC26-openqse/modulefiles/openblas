@@ -1,0 +1,25 @@
+#%Module1.0
+##
+## OpenBLAS from the Ubuntu noble base image (libopenblas-dev).
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds the system OpenBLAS development files to the environment."
+}
+
+module-whatis "System OpenBLAS development package"
+
+set root /usr
+# Debian multiarch library directory for this machine.
+set arch [exec uname -m]
+set libdir $root/lib/$arch-linux-gnu
+
+prepend-path LD_LIBRARY_PATH      $libdir/openblas-pthread
+prepend-path LD_LIBRARY_PATH      $libdir
+prepend-path LIBRARY_PATH         $libdir/openblas-pthread
+prepend-path LIBRARY_PATH         $libdir
+prepend-path CPATH                $root/include/$arch-linux-gnu/openblas-pthread
+prepend-path C_INCLUDE_PATH       $root/include/$arch-linux-gnu/openblas-pthread
+prepend-path CPLUS_INCLUDE_PATH   $root/include/$arch-linux-gnu/openblas-pthread
+prepend-path PKG_CONFIG_PATH      $libdir/pkgconfig
+setenv OPENBLAS_ROOT              $root
