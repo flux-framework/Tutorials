@@ -1,0 +1,47 @@
+# QFw devices and the (optional) site service plane, read by flux-qfw's CLI
+# plugin at submit and by the qfw-service broker module at boot.
+#
+# Every device is job-scoped: the job that asks for it (--qfw-qpu) runs the
+# QFw services it needs, as the user, on its own nodes, with the user's own
+# credentials (~/.qfw/device-access.yaml, see README). The site keeps no
+# credentials and runs no QFw daemon; Fluxion's device vertex is the
+# admission, and its qpu count is how many jobs may hold the device at once.
+#
+# A site that fronts a device with its own service account may instead set
+# scope = "site" and a host for it, plus `directory = <host>`: the
+# qfw-service module then runs that QPM and the directory service on that
+# broker, small and beside the scheduler. Nothing here does.
+#
+# A device behind a queue the site does not control (a vendor's machine)
+# additionally sets queue = "external". Fluxion's grant is not readiness for
+# such a device, so one submit becomes a pair: a scout job that takes the
+# qpu and one core, and the user's job, held, with no device entry. The
+# coschedule policy keeps the held job's nodes reserved; the scout opens a
+# session on the device's queue and releases the job once it is ready, so
+# classical and quantum start together. fake-iqm is marked so below: it
+# stands in for a vendor queue, and the mock backend's session takes
+# FLUX_QFW_MOCK_SESSION_DELAY seconds (default 5) to become ready.
+[qfw]
+prefix = "/opt/openqse/qfw"
+venv = "/opt/openqse/qfw-venv"
+site-config = "/etc/openqse/qfw/site.yaml"
+shared-root = "/workspace/qfw-container-base"
+run-root = "/var/lib/qfw-site-services"
+start-timeout = 300
+autostart = true
+# A job's PRTE DVM launches its daemons through this agent: flux exec on the
+# job's own ranks instead of ssh. Set to "" to fall back to ssh.
+launch-agent = "/usr/local/libexec/qfw-flux/flux-launch-agent"
+
+[qfw.qpm.nwqsim]
+scope = "job"
+
+[qfw.qpm.iqm-ornl-20q]
+scope = "job"
+
+[qfw.qpm.shim-ornl-20q]
+scope = "job"
+
+[qfw.qpm.fake-iqm]
+scope = "site"
+queue = "external"

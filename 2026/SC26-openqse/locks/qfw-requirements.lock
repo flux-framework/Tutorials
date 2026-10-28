@@ -1,0 +1,501 @@
+# Every Python package in the QFw venv, at exact versions, for Python 3.12 on
+# linux x86_64 and aarch64. Solved against QFw 55d13a2096c1 (QFW_REF in the
+# Dockerfile) with uv and QFw's setup/overrides.txt. qrmi matches
+# QRMI_VERSION in the Dockerfile; change them together.
+#
+# To regenerate, in a QFw checkout at QFW_REF:
+#   printf '%s\n' 'qrmi==0.24.4' 'iqm-qdmi>=1.4' 'mqt-core==3.9.2' \
+#       'jsonschema>=4' pip setuptools wheel > /tmp/tutorial-extra.txt
+#   uv pip compile --universal --python-version 3.12 --no-header \
+#       setup/build-requirements.txt setup/requirements.txt /tmp/tutorial-extra.txt \
+#       --override setup/overrides.txt -o qfw-requirements.lock
+annotated-types==0.8.0
+    # via pydantic
+antlr4-python3-runtime==4.13.2
+    # via openqasm3
+appdirs==1.4.4
+    # via pennylane
+attrs==26.1.0
+    # via
+    #   cirq-core
+    #   jsonschema
+    #   referencing
+autograd==1.8.0
+    # via pennylane
+autoray==0.8.4
+    # via pennylane
+bcrypt==5.0.0
+    # via paramiko
+cachetools==7.2.7
+    # via pennylane
+certifi==2026.10.23
+    # via requests
+cffi==2.1.1 ; platform_python_implementation != 'PyPy'
+    # via
+    #   cryptography
+    #   pynacl
+charset-normalizer==3.5.2
+    # via requests
+cirq-core==1.7.0
+    # via
+    #   cirq-superstaq
+    #   openfermion
+cirq-superstaq==0.5.70
+    # via supermarq
+cloudpickle==3.1.2
+    # via joblib
+colorama==0.4.6 ; sys_platform == 'win32'
+    # via tqdm
+contourpy==1.4.0
+    # via matplotlib
+cryptography==50.0.2
+    # via
+    #   paramiko
+    #   pyspnego
+    #   requests-ntlm
+cycler==0.12.1
+    # via matplotlib
+deprecation==2.1.0
+    # via openfermion
+diastatic-malt==2.15.3
+    # via pennylane
+dill==0.4.1
+    # via qiskit
+dnspython==2.9.0
+    # via email-validator
+docplex==2.32.264
+    # via qiskit-optimization
+duet==0.2.9
+    # via cirq-core
+email-validator==2.3.0
+    # via pydantic
+fonttools==4.68.0
+    # via matplotlib
+gast==0.7.0
+    # via pennylane
+general-superstaq==0.5.70
+    # via
+    #   cirq-superstaq
+    #   qiskit-superstaq
+googleapis-common-protos==1.76.0
+    # via
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+grpcio==1.85.0
+    # via
+    #   iqm-station-control-client
+    #   opentelemetry-exporter-otlp-proto-grpc
+h5py==3.16.0
+    # via
+    #   openfermion
+    #   pyscf
+    #   qiskit-nature
+ibm-cloud-sdk-core==3.24.1
+    # via ibm-platform-services
+ibm-platform-services==0.66.1
+    # via
+    #   -r setup/requirements.txt
+    #   qiskit-ibm-runtime
+idna==3.20
+    # via
+    #   email-validator
+    #   requests
+invoke==3.0.3
+    # via paramiko
+iqm-client==34.0.1
+    # via -r setup/requirements.txt
+iqm-data-definitions==2.24
+    # via
+    #   -r setup/requirements.txt
+    #   iqm-exa-common
+    #   iqm-pulse
+    #   iqm-station-control-client
+iqm-exa-common==27.5.1
+    # via
+    #   -r setup/requirements.txt
+    #   iqm-pulse
+    #   iqm-station-control-client
+iqm-pulse==13.0.1
+    # via
+    #   -r setup/requirements.txt
+    #   iqm-client
+    #   iqm-station-control-client
+iqm-qdmi==1.5.0
+    # via -r /tmp/tutorial-extra.txt
+iqm-station-control-client==12.1.1
+    # via
+    #   -r setup/requirements.txt
+    #   iqm-client
+jinja2==3.1.6
+    # via
+    #   iqm-exa-common
+    #   iqm-pulse
+joblib==1.6.0
+    # via scikit-learn
+jsonschema==4.26.0
+    # via
+    #   -r /tmp/tutorial-extra.txt
+    #   -r setup/requirements.txt
+jsonschema-specifications==2025.9.1
+    # via jsonschema
+kiwisolver==1.5.1
+    # via matplotlib
+markdown-it-py==4.2.0
+    # via rich
+markupsafe==3.0.4
+    # via jinja2
+matplotlib==3.11.2
+    # via
+    #   -r setup/requirements.txt
+    #   cirq-core
+    #   seaborn
+mdurl==0.1.2
+    # via markdown-it-py
+mpi4py==4.1.2
+    # via -r setup/requirements.txt
+mpmath==1.3.0
+    # via sympy
+mqt-core==3.9.2
+    # via -r /tmp/tutorial-extra.txt
+narwhals==2.28.0
+    # via scikit-learn
+netifaces==0.11.0
+    # via -r setup/requirements.txt
+networkx==3.7
+    # via
+    #   -r setup/requirements.txt
+    #   cirq-core
+    #   openfermion
+    #   pennylane
+    #   pennylane-qiskit
+    #   qiskit-optimization
+numpy==2.5.4
+    # via
+    #   -r setup/requirements.txt
+    #   autograd
+    #   cirq-core
+    #   contourpy
+    #   general-superstaq
+    #   h5py
+    #   iqm-client
+    #   iqm-data-definitions
+    #   iqm-exa-common
+    #   iqm-pulse
+    #   matplotlib
+    #   numpy-typing-compat
+    #   openfermion
+    #   optype
+    #   pandas
+    #   pennylane
+    #   pyscf
+    #   qiskit
+    #   qiskit-aer
+    #   qiskit-algorithms
+    #   qiskit-ibm-runtime
+    #   qiskit-nature
+    #   qiskit-optimization
+    #   rustworkx
+    #   scikit-learn
+    #   scipy
+    #   seaborn
+    #   xarray
+numpy-typing-compat==20260602.2.5
+    # via optype
+openfermion==1.8.1
+    # via -r setup/requirements.txt
+openqasm3==1.0.1
+    # via qiskit-qasm3-import
+opentelemetry-api==1.45.1
+    # via
+    #   -r setup/requirements.txt
+    #   opentelemetry-exporter-http-transport
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+    #   opentelemetry-sdk
+    #   opentelemetry-semantic-conventions
+opentelemetry-exporter-http-transport==0.66b1
+    # via opentelemetry-exporter-otlp-proto-http
+opentelemetry-exporter-otlp==1.45.1
+    # via iqm-station-control-client
+opentelemetry-exporter-otlp-common==0.66b1
+    # via
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+opentelemetry-exporter-otlp-proto-common==1.45.1
+    # via
+    #   -r setup/requirements.txt
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+opentelemetry-exporter-otlp-proto-grpc==1.45.1
+    # via opentelemetry-exporter-otlp
+opentelemetry-exporter-otlp-proto-http==1.45.1
+    # via
+    #   -r setup/requirements.txt
+    #   opentelemetry-exporter-otlp
+opentelemetry-proto==1.45.1
+    # via
+    #   opentelemetry-exporter-otlp-proto-common
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+opentelemetry-sdk==1.45.1
+    # via
+    #   -r setup/requirements.txt
+    #   opentelemetry-exporter-otlp-common
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+opentelemetry-semantic-conventions==0.66b1
+    # via opentelemetry-sdk
+optype==0.19.0
+    # via scipy-stubs
+packaging==24.2
+    # via
+    #   deprecation
+    #   iqm-client
+    #   matplotlib
+    #   pennylane
+    #   qiskit-ibm-runtime
+    #   wheel
+    #   xarray
+pandas==3.0.6
+    # via
+    #   cirq-core
+    #   seaborn
+    #   xarray
+paramiko==5.1.0
+    # via -r setup/requirements.txt
+pennylane==0.45.1
+    # via
+    #   -r setup/requirements.txt
+    #   pennylane-lightning
+    #   pennylane-qiskit
+pennylane-lightning==0.45.0
+    # via pennylane
+pennylane-qiskit==0.45.0
+    # via -r setup/requirements.txt
+pillow==13.0.0
+    # via matplotlib
+pip==26.2.2
+    # via -r /tmp/tutorial-extra.txt
+protobuf==7.36.2
+    # via
+    #   googleapis-common-protos
+    #   iqm-data-definitions
+    #   opentelemetry-proto
+psutil==7.2.2
+    # via
+    #   -r setup/requirements.txt
+    #   pyscf
+    #   qiskit-aer
+pubchempy==1.0.5
+    # via openfermion
+pycparser==3.12 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+    # via cffi
+pydantic==2.14.1
+    # via
+    #   general-superstaq
+    #   iqm-client
+    #   iqm-exa-common
+    #   iqm-station-control-client
+    #   qiskit-ibm-runtime
+pydantic-core==2.50.1
+    # via pydantic
+pygments==2.21.0
+    # via rich
+pyjwt==2.15.1
+    # via ibm-cloud-sdk-core
+pynacl==1.6.2
+    # via paramiko
+pyparsing==3.3.3
+    # via matplotlib
+pyscf==2.14.0
+    # via -r setup/requirements.txt
+pyspnego==0.12.4
+    # via requests-ntlm
+python-dateutil==2.9.0.post0
+    # via
+    #   ibm-cloud-sdk-core
+    #   matplotlib
+    #   pandas
+    #   qiskit-aer
+    #   qiskit-ibm-runtime
+    #   qrmi
+python-dotenv==0.21.1
+    # via
+    #   iqm-exa-common
+    #   qrmi
+python-rapidjson==1.20
+    # via iqm-pulse
+pyyaml==6.0.3
+    # via
+    #   -r setup/build-requirements.txt
+    #   -r setup/requirements.txt
+    #   iqm-station-control-client
+qiskit==2.5.2
+    # via
+    #   --override setup/overrides.txt
+    #   -r setup/requirements.txt
+    #   pennylane-qiskit
+    #   qiskit-aer
+    #   qiskit-algorithms
+    #   qiskit-ibm-runtime
+    #   qiskit-nature
+    #   qiskit-optimization
+    #   qiskit-qasm3-import
+    #   qiskit-superstaq
+qiskit-aer==0.17.2
+    # via
+    #   -r setup/requirements.txt
+    #   pennylane-qiskit
+qiskit-algorithms==0.4.0
+    # via
+    #   -r setup/requirements.txt
+    #   qiskit-nature
+qiskit-ibm-runtime==0.45.1
+    # via
+    #   -r setup/requirements.txt
+    #   pennylane-qiskit
+qiskit-nature==0.8.0
+    # via -r setup/requirements.txt
+qiskit-optimization==0.7.0
+    # via -r setup/requirements.txt
+qiskit-qasm3-import==0.6.0
+    # via qiskit
+qiskit-superstaq==0.5.70
+    # via supermarq
+qrmi==0.24.4
+    # via -r /tmp/tutorial-extra.txt
+referencing==0.37.0
+    # via
+    #   jsonschema
+    #   jsonschema-specifications
+requests==2.32.3
+    # via
+    #   general-superstaq
+    #   ibm-cloud-sdk-core
+    #   iqm-client
+    #   iqm-exa-common
+    #   iqm-station-control-client
+    #   openfermion
+    #   opentelemetry-exporter-http-transport
+    #   opentelemetry-exporter-otlp-proto-http
+    #   pennylane
+    #   qiskit-ibm-runtime
+    #   requests-ntlm
+requests-ntlm==1.3.0
+    # via qiskit-ibm-runtime
+rich==15.0.0
+    # via -r setup/requirements.txt
+rpds-py==2026.9.1
+    # via
+    #   jsonschema
+    #   referencing
+ruamel-yaml==0.17.32
+    # via iqm-exa-common
+ruamel-yaml-clib==0.2.11
+    # via iqm-exa-common
+rustworkx==0.18.1
+    # via
+    #   pennylane
+    #   qiskit
+    #   qiskit-nature
+scikit-learn==1.9.1
+    # via supermarq
+scipy==1.18.1
+    # via
+    #   -r setup/requirements.txt
+    #   cirq-core
+    #   iqm-data-definitions
+    #   iqm-pulse
+    #   openfermion
+    #   pennylane
+    #   pyscf
+    #   qiskit
+    #   qiskit-aer
+    #   qiskit-algorithms
+    #   qiskit-nature
+    #   qiskit-optimization
+    #   scikit-learn
+scipy-openblas32==0.3.34.237.2
+    # via pennylane-lightning
+scipy-stubs==1.18.1.1
+    # via
+    #   iqm-data-definitions
+    #   iqm-pulse
+seaborn==0.13.2
+    # via supermarq
+setuptools==84.2.1
+    # via
+    #   -r /tmp/tutorial-extra.txt
+    #   pyscf
+    #   qiskit-nature
+    #   qiskit-optimization
+six==1.16.0
+    # via
+    #   docplex
+    #   iqm-exa-common
+    #   python-dateutil
+sspilib==0.6.0 ; sys_platform == 'win32'
+    # via pyspnego
+stevedore==5.9.1
+    # via qiskit
+supermarq==0.5.70
+    # via -r setup/requirements.txt
+symengine==0.13.0 ; python_full_version < '3.14'
+    # via qiskit-superstaq
+sympy==1.14.0
+    # via
+    #   cirq-core
+    #   openfermion
+    #   pennylane-qiskit
+    #   qiskit-nature
+termcolor==3.3.0
+    # via diastatic-malt
+threadpoolctl==3.7.0
+    # via scikit-learn
+tomlkit==0.15.2
+    # via pennylane
+tqdm==4.70.1
+    # via
+    #   cirq-core
+    #   iqm-station-control-client
+types-protobuf==7.35.1.20260906
+    # via
+    #   iqm-data-definitions
+    #   iqm-station-control-client
+types-requests==2.33.0.20261006
+    # via
+    #   iqm-exa-common
+    #   iqm-station-control-client
+types-six==1.17.0.20261008
+    # via iqm-exa-common
+types-tqdm==4.70.0.20260906
+    # via iqm-station-control-client
+typing-extensions==4.16.0
+    # via
+    #   grpcio
+    #   opentelemetry-api
+    #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-exporter-otlp-proto-http
+    #   opentelemetry-sdk
+    #   opentelemetry-semantic-conventions
+    #   optype
+    #   pennylane
+    #   pydantic
+    #   pydantic-core
+    #   qiskit
+    #   referencing
+    #   typing-inspection
+typing-inspection==0.4.4
+    # via pydantic
+tzdata==2026.6 ; sys_platform == 'emscripten' or sys_platform == 'win32'
+    # via pandas
+urllib3==2.8.0
+    # via
+    #   ibm-cloud-sdk-core
+    #   qiskit-ibm-runtime
+    #   requests
+    #   types-requests
+wheel==0.48.0
+    # via -r /tmp/tutorial-extra.txt
+xarray==2026.9.0
+    # via iqm-exa-common

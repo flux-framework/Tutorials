@@ -1,0 +1,35 @@
+#%Module1.0
+##
+## ROCm rooted under the mounted qfw-container-base workspace by default.
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds a mounted ROCm installation to the environment."
+    puts stderr "Override the default root with QFW_ROCM_ROOT before loading."
+}
+
+module-whatis "Mounted ROCm installation"
+
+if { [info exists env(QFW_ROCM_ROOT)] } {
+    set root $env(QFW_ROCM_ROOT)
+} else {
+    set root /workspace/qfw-container-base/rocm
+}
+
+if { ! [file isdirectory $root] } {
+    module-error "ROCm root '$root' does not exist. Set QFW_ROCM_ROOT or mount ROCm under /workspace/qfw-container-base/rocm."
+}
+
+prepend-path PATH                $root/bin
+prepend-path LD_LIBRARY_PATH     $root/lib
+prepend-path LD_LIBRARY_PATH     $root/lib64
+prepend-path LIBRARY_PATH        $root/lib
+prepend-path LIBRARY_PATH        $root/lib64
+prepend-path CPATH               $root/include
+prepend-path C_INCLUDE_PATH      $root/include
+prepend-path CPLUS_INCLUDE_PATH  $root/include
+prepend-path PKG_CONFIG_PATH     $root/lib/pkgconfig
+prepend-path PKG_CONFIG_PATH     $root/lib64/pkgconfig
+prepend-path CMAKE_PREFIX_PATH   $root
+setenv ROCM_PATH                 $root
+setenv PATH_ROCM                 $root

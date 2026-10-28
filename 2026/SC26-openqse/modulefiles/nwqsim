@@ -1,0 +1,20 @@
+#%Module1.0
+##
+## NWQ-Sim built independently by QFw's dependency builder.
+##
+
+proc ModulesHelp { } {
+    puts stderr "Adds the image NWQ-Sim circuit runner to the environment."
+}
+
+module-whatis "NWQ-Sim for QFw"
+
+set root /opt/openqse/nwqsim
+
+prepend-path PATH              $root/bin
+prepend-path LD_LIBRARY_PATH   $root/lib
+prepend-path LD_LIBRARY_PATH   $root/lib64
+prepend-path LIBRARY_PATH      $root/lib
+prepend-path LIBRARY_PATH      $root/lib64
+prepend-path CMAKE_PREFIX_PATH $root
+setenv NWQSIM_ROOT             $root

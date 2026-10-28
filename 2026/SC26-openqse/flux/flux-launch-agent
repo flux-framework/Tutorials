@@ -1,0 +1,44 @@
+#!/bin/bash
+# PRRTE launch agent that runs a remote command through the Flux broker on
+# that host, with `flux exec`, instead of over ssh.
+#
+# PRRTE's ssh PLM starts one prted per remote host by running its launch
+# agent as: <agent> [ssh options] HOST COMMAND... (the command is the
+# environment setup and prted invocation, as a shell command line, the way
+# ssh would hand it to the remote login shell). Pointing the agent at this
+# script (MCA parameter plm_ssh_agent, which the qfw-service module sets in
+# the QPM's environment) makes the NWQSim DVM come up with no ssh at all:
+# every host is a rank of the system instance, and `flux exec` reaches it
+# as the instance owner with this process's environment.
+#
+# Usage: flux-launch-agent [-x ...] HOST COMMAND...
+set -euo pipefail
+
+while [ $# -gt 0 ] && [ "${1#-}" != "$1" ]; do
+    shift    # ssh-style options (plm_ssh_args, "-x" by default) have no place here
+done
+if [ $# -lt 2 ]; then
+    echo "flux-launch-agent: usage: [options] HOST COMMAND..." >&2
+    exit 2
+fi
+host="$1"
+shift
+
+rank="$(flux hostlist --find="${host}" instance 2>/dev/null || true)"
+if [ -z "${rank}" ]; then
+    # Brokers that share one hostname (the tutorial's nine brokers in one
+    # container) make the instance hostlist useless here. Then the hostnames
+    # in R are the names jobs see, and R lists them in rank order.
+    nodelist="$(flux kvs get resource.R 2>/dev/null | jq -r '.execution.nodelist | join(",")' 2>/dev/null || true)"
+    if [ -n "${nodelist}" ]; then
+        rank="$(flux hostlist --find="${host}" "${nodelist}" 2>/dev/null || true)"
+    fi
+fi
+if [ -z "${rank}" ]; then
+    echo "flux-launch-agent: host '${host}' is not a rank of this Flux instance" >&2
+    exit 1
+fi
+rank="${rank%%,*}"; rank="${rank%%-*}"    # one host, one rank
+
+# ssh runs the command line under the remote shell; do the same on the rank.
+exec flux exec --rank="${rank}" -- /bin/sh -c "$*"

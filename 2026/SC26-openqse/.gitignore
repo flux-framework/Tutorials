@@ -1,0 +1,5 @@
+.ipynb_checkpoints
+flux*.out
+__pycache__/
+vendor/*
+!vendor/.gitkeep

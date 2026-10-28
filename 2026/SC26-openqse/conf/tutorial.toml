@@ -1,0 +1,37 @@
+# Broker config for the tutorial's single container instance.
+#
+# Nine brokers run in one container (flux start -s 9), so R comes from a
+# file. tutorial-entrypoint.sh writes it at start: flux-lead and c1 through
+# c8 with four cores each, c1 through c8 in the normal queue, and the QPM
+# device vertices that flux-qfw add puts beside the nodes. The
+# brokers all share the container's hostname, which is why R is not
+# verified against the hardware.
+#
+# qfw.toml next to this file holds the devices, their scopes, the external
+# queue of fake-iqm, and the launch agent.
+
+[resource]
+path = "/etc/flux/tutorial/R.json"
+noverify = true
+norestrict = true
+# rank 0 is flux-lead: it runs the scheduler and Jupyter, and is kept out
+# of scheduling
+exclude = "0"
+
+[sched-fluxion-resource]
+match-format = "rv1"
+
+[sched-fluxion-qmanager]
+# backfill plus the hold a job on an external queue is submitted with
+queue-policy = "coschedule"
+
+[queues.normal]
+requires = ["normal"]
+
+[policy]
+jobspec.defaults.system.queue = "normal"
+jobspec.defaults.system.duration = "5d"
+
+[access]
+allow-guest-user = true
+allow-root-owner = true
