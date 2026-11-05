@@ -24,12 +24,14 @@ c = get_config()
 # Tell JupyterHub to use your custom spawner class.
 # We add '.' to the path to make sure Python can find ec2_spawner.py
 # in the current directory.
-sys.path.insert(0, os.path.dirname(__file__))
+# Everything the hub reads or writes is next to this file, wherever that is.
+here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, here)
 c.JupyterHub.spawner_class = "ec2_spawner.EC2Spawner"
 
 # Custom login page
-c.JupyterHub.template_paths = ["/srv/jupyterhub/templates"]
-c.JupyterHub.static_paths = ["/srv/jupyterhub/static"]
+c.JupyterHub.template_paths = [os.path.join(here, "templates")]
+c.JupyterHub.static_paths = [os.path.join(here, "static")]
 
 # IP and Port for the Hub to listen on.
 # '0.0.0.0' makes it listen on all network interfaces.
@@ -87,7 +89,7 @@ c.EC2Spawner.start_timeout = 300
 
 # The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-c.EC2Spawner.ami = "ami-008964e3e14bc258b"
+c.EC2Spawner.ami = "ami-08cb91fd536589ae9"
 
 # Instance type for each user's server.
 # 't4g.2xlarge' is what had a maximum fom per core ratio in my experiments
@@ -161,7 +163,7 @@ c.JupyterHub.services = [
 # Store the JupyterHub database in a persistent location on the Hub VM.
 # This ensures that if you restart JupyterHub, it remembers active users and their
 # associated EC2 instance IDs.
-c.JupyterHub.db_url = "sqlite:////srv/jupyterhub/jupyterhub.sqlite"
+c.JupyterHub.db_url = "sqlite:///" + os.path.join(here, "jupyterhub.sqlite")
 
 # -----------------------------------------------------------------------------
 # Other Optional Settings

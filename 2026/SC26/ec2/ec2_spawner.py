@@ -114,17 +114,13 @@ rm -rf ~/.aws
 # sudo ln -s $(which python3) /usr/bin/python
 
 # Clone repository tutorials, expose tutorial notebooks
-mkdir -p /home/ubuntu/.local/share/jupyter/jupyter_app_launcher /home/ubuntu/.jupyter/lab/static /srv/jupyterlab/static
+# The launcher's icon paths are relative to the launcher file
+LAUNCHER=/usr/local/share/jupyter/lab/jupyter_app_launcher
 git clone --depth 1 -b sc26-tutorial https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2026/SC26/tutorial /home/ubuntu/tutorial
-cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /home/ubuntu/.local/share/jupyter/jupyter_app_launcher/jp_app_launcher.yaml
-sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/jp_app_launcher.yaml
-
-sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml /usr/local/share/jupyter/lab/jupyter_app_launcher/jp_app_launcher.yaml
-export JUPYTER_APP_LAUNCHER_PATH=/usr/local/share/jupyter/lab/jupyter_app_launcher/
-
-
-sudo chown -R ubuntu /home/ubuntu/.local/share/jupyter
+sudo mkdir -p $LAUNCHER/static
+sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml $LAUNCHER/jp_app_launcher.yaml
+sudo cp /tmp/tutorials/2026/SC26/docker/flux-icon.png $LAUNCHER/static/flux-icon.png
 
 cp /tmp/tutorials/2026/SC26/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
@@ -154,10 +150,11 @@ echo "Starting JupyterLab..."
 sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
 sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
 
-export PYTHONPATH=/usr/lib/python3.14/site-packages
+export PYTHONPATH=/usr/lib/python3.12/site-packages:${{PYTHONPATH:-}}
+export JUPYTER_APP_LAUNCHER_PATH=/usr/local/share/jupyter/lab/jupyter_app_launcher/
 cd /home/ubuntu
 
-flux start --test-size=4 jupyter-lab \\
+flux start --test-size=4 /usr/local/bin/jupyter-lab \\
   --ip=0.0.0.0 \\
   --port=8888 \\
   --notebook-dir=/home/ubuntu \\
