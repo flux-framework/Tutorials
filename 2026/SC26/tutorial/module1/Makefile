@@ -1,2 +1,7 @@
+MPICC := /opt/amazon/openmpi/bin/mpicc
+ifeq ($(wildcard $(MPICC)),)
+MPICC := mpicc
+endif
+
 make:
-	/opt/amazon/openmpi/bin/mpicc -o hello hello.c
+	$(MPICC) -o hello hello.c
