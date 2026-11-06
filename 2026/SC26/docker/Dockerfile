@@ -7,9 +7,8 @@
 #   docker run --rm -it -p 8888:8888 ghcr.io/flux-framework/flux-tutorial:sc26
 #
 # Adapted from 2026/HPSF/docker/Dockerfile. Changes for SC26:
-#   - copies the module1/module2/module3 tree instead of ch1..ch5
-#   - adds qiskit, qiskit-aer, and scipy for the Module 2 quantum notebook
-#   - drops amazon-braket-sdk (that example was replaced by a local simulator)
+#   - copies the module1/module2 tree instead of ch1..ch5
+#   - installs amazon-braket-sdk and scipy for the Module 2 quantum notebook
 #   - drops flux-mcp (the agentic section was cut)
 FROM fluxrm/flux-sched:noble
 

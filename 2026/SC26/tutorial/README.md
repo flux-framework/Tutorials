@@ -10,12 +10,5 @@ Open a terminal in the sidebar and work through the modules in order.
 Every module 1 notebook ends with optional side quests for anyone who finishes early.
 
 ## Module 2: Converged Environments
-Do these in order. Each one installs into the cluster the previous one started.
-1. [Usernetes](module2/01_usernetes.ipynb) — bring up the control plane
-2. [The Flux Operator](module2/02_flux_operator.ipynb) — install it into that cluster, run LAMMPS
-3. [Kubeflow Trainer](module2/03_kubeflow_trainer.ipynb) — into the same cluster
-4. [Quantum simulation under Flux](module2/04_quantum_local.ipynb) — no cluster needed
-
-## Module 3: Open Forum
-1. [Wrap-up and resources](module3/01_wrapup_and_resources.ipynb)
-2. [Deep Dish Trivia](module3/trivia/index.html)
+1. [Flux with User-space Kubernetes](module2/01_usernetes.ipynb) — Usernetes, LAMMPS and the Flux Operator, and the Kubeflow Trainer
+2. [Hybrid quantum-classical workflows](module2/02_flux_quantum_braket.ipynb) — QAOA on the Braket local simulator under Flux
