@@ -110,6 +110,12 @@ sudo chown -R ubuntu /home/ubuntu
 # Just in case...
 rm -rf ~/.aws
 
+# The AMI carries a flux-quantum profile that is not part of this tutorial.
+# It exports a fixed FLUX_URI for a system instance this VM does not run,
+# and every login shell, the JupyterLab terminals included, would take that
+# over the URI flux start sets.
+sudo rm -f /etc/profile.d/flux-quantum.sh
+
 # Someone is going to type this
 # sudo ln -s $(which python3) /usr/bin/python
 
@@ -150,11 +156,11 @@ echo "Starting JupyterLab..."
 sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
 sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
 
-export PYTHONPATH=/usr/lib/python3.12/site-packages:${{PYTHONPATH:-}}
+export PYTHONPATH=/usr/lib/python3.14/site-packages:${{PYTHONPATH:-}}
 export JUPYTER_APP_LAUNCHER_PATH=/usr/local/share/jupyter/lab/jupyter_app_launcher/
 cd /home/ubuntu
 
-flux start --test-size=4 /usr/local/bin/jupyter-lab \\
+flux start --test-size=4 jupyter-lab \\
   --ip=0.0.0.0 \\
   --port=8888 \\
   --notebook-dir=/home/ubuntu \\

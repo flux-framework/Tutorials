@@ -1,3 +1,2 @@
-qiskit
-qiskit-aer
+amazon-braket-sdk
 scipy

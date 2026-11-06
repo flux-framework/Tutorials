@@ -34,8 +34,8 @@
         icon: ./static/flux-icon.png
   catalog: Notebook
 
-- title: "Module 2.1: Usernetes"
-  description: Bring up a user-space Kubernetes control plane inside a Flux job
+- title: "Module 2.1: Flux with User-space Kubernetes"
+  description: Usernetes, LAMMPS and the Flux Operator, and the Kubeflow Trainer
   type: jupyterlab-commands
   icon: ./static/flux-icon.png
   source:
@@ -46,51 +46,15 @@
         icon: ./static/flux-icon.png
   catalog: Notebook
 
-- title: "Module 2.2: The Flux Operator"
-  description: Install the operator into Usernetes and run LAMMPS as a MiniCluster
+- title: "Module 2.2: Hybrid Quantum-Classical Workflows"
+  description: QAOA max-cut on the Braket local simulator under Flux
   type: jupyterlab-commands
   icon: ./static/flux-icon.png
   source:
     - label: Flux Tutorial
       id: 'filebrowser:open-path'
       args:
-        path: ./tutorial/module2/02_flux_operator.ipynb
-        icon: ./static/flux-icon.png
-  catalog: Notebook
-
-- title: "Module 2.3: Kubeflow Trainer"
-  description: AI/ML and HPC simulation from one control plane
-  type: jupyterlab-commands
-  icon: ./static/flux-icon.png
-  source:
-    - label: Flux Tutorial
-      id: 'filebrowser:open-path'
-      args:
-        path: ./tutorial/module2/03_kubeflow_trainer.ipynb
-        icon: ./static/flux-icon.png
-  catalog: Notebook
-
-- title: "Module 2.4: Quantum Simulation Under Flux"
-  description: A hybrid quantum-classical workload on a local simulator
-  type: jupyterlab-commands
-  icon: ./static/flux-icon.png
-  source:
-    - label: Flux Tutorial
-      id: 'filebrowser:open-path'
-      args:
-        path: ./tutorial/module2/04_quantum_local.ipynb
-        icon: ./static/flux-icon.png
-  catalog: Notebook
-
-- title: "Module 3: Wrap Up and Resources"
-  description: Lightning talks, trivia, and where to go next
-  type: jupyterlab-commands
-  icon: ./static/flux-icon.png
-  source:
-    - label: Flux Tutorial
-      id: 'filebrowser:open-path'
-      args:
-        path: ./tutorial/module3/01_wrapup_and_resources.ipynb
+        path: ./tutorial/module2/02_flux_quantum_braket.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
 

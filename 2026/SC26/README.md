@@ -9,7 +9,6 @@ McCormick Place, Chicago, 15–20 November 2026.
 |---|---|---|
 | **1. Flux Foundations & Hierarchical Scheduling** | Background and story, limitations of traditional schedulers, the graph-based model, Flux as a system manager, community growth | [`module1/`](tutorial/module1) — foundations, Python SDK, internals + plugin workshop |
 | **2. Converged Environments: Cloud, AI/ML, and Kubernetes** | Flux in the cloud, user-space Kubernetes on-prem, Kubeflow Trainer | [`module2/`](tutorial/module2) — Usernetes, Flux Operator, Kubeflow, quantum |
-| **3. Lightning Talks, Research, and Open Forum** | Plugins and development, the admin perspective, real-world R&D | [`module3/`](tutorial/module3) — plugin show and tell, trivia, wrap-up |
 
 ## How the notebooks work
 
@@ -28,7 +27,6 @@ is a flat pizza. `flux uptime` tells you which layer you are standing on.
 
 - **Side quests** (Module 1, end of every notebook) — optional ten-minute challenges with folded-up answers: chain the Chicago hot dog scripts with `--dependency`, pack six pizzas into a six-core `flux alloc`, find out why a job died from its eventlog, write a `flux menu` subcommand, and more.
 - **Plugin workshop** (Module 1, notebook 3) — a half-written **Python** job validator in [`plugin-workshop/`](tutorial/module1/plugin-workshop). We give the class and the resource lookups and attendees write the policy decision. A Lua job shell plugin skeleton is there too.
-- **Deep Dish Trivia** (Module 3) — 24 questions, 4 rounds, a joke between each. Self-contained static page in [`trivia/`](tutorial/module3/trivia).
 
 ## Building and running the container
 

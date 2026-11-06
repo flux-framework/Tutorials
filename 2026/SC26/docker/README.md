@@ -53,17 +53,18 @@ flux run -o verbose=2 -o userrc=plugin-workshop/order-ticket.lua -n2 hostname
 
 # Module 2 quantum: local simulator, no credentials
 cd ~/module2
-flux run --cores-per-task=1 python3 scripts/qaoa_maxcut.py -p 2 -s 2048
+flux run python3 scripts/qaoa_maxcut.py --nodes 6 --max-iter 5
 ```
 
-Module 2's Kubernetes notebooks will **not** work in this container. Usernetes needs
+Module 2's Kubernetes sections (the first notebook, and the optional Usernetes section of
+the quantum notebook) will **not** work in this container. Usernetes needs
 rootless Docker, cgroup v2 delegation, and the `vxlan` and `br_netfilter` kernel modules,
 and the operator and LAMMPS images are ARM-only. Those sections require the EC2 instance
 built by [`build/build-ubuntu.sh`](../build/build-ubuntu.sh), which installs Usernetes and
 places `start-usernetes.sh` in the home directory.
 
-The QAOA run should report `"best_cut": 6` out of 7 edges, which is the true optimum for
-the built-in graph, and take a few seconds.
+The QAOA run ends with a `[qaoa] SUMMARY` line giving the best cut and approximation
+ratio, and takes a few seconds.
 
 ## Pushing
 
@@ -90,7 +91,6 @@ docker push ghcr.io/flux-framework/flux-tutorial:sc26
 
 ## What changed from the 2026 images
 
-- Copies `module1/`, `module2/`, `module3/` instead of `ch1` through `ch5`
-- Adds `qiskit`, `qiskit-aer`, and `scipy` for the Module 2 quantum notebook
-- Drops `amazon-braket-sdk`, since that example was replaced by a local simulator
+- Copies `module1/` and `module2/` instead of `ch1` through `ch5`
+- Installs `amazon-braket-sdk` and `scipy` for the Module 2 quantum notebook (local simulator only)
 - Drops `flux-mcp`, since the agentic science section was cut
