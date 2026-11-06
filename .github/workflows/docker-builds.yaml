@@ -10,9 +10,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: []
+        # [context, dockerfile, container]
+        test: [["2026/SC26", "docker/Dockerfile", "ghcr.io/flux-framework/flux-tutorial:sc26"]]
 
 # Tutorials are over - these builds are disabled
+# ["2026/HPSF", "docker/Dockerfile", "ghcr.io/flux-framework/flux-jupyter-hub:hpsf-2026"]
 # ["2025/ISC-AWS/JupyterNotebook", "docker/Dockerfile.hub", "ghcr.io/flux-framework/flux-jupyter-hub:isc-2025"]
 # ["2025/ISC-AWS/JupyterNotebook", "docker/Dockerfile.init", "ghcr.io/flux-framework/flux-jupyter-init:isc-2025"]
 # ["2025/ISC-AWS/JupyterNotebook", "docker/Dockerfile.spawn", "ghcr.io/flux-framework/flux-jupyter-spawn:isc-2025"]
