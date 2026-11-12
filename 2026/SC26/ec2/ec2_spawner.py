@@ -130,6 +130,9 @@ sudo cp /tmp/tutorials/2026/SC26/docker/flux-icon.png $LAUNCHER/static/flux-icon
 
 cp /tmp/tutorials/2026/SC26/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
+# the tutorial's docker-compose.yaml for usernetes (image usernetes_node, no build
+# section, port 80) over the one in the checkout, so "make up" does not rebuild
+cp /tmp/tutorials/2026/SC26/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
 sudo chown -R ubuntu /home/ubuntu/
 
 # We need to stop nginx if it's running

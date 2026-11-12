@@ -1,8 +1,18 @@
 #!/bin/bash
 
 cd /home/ubuntu/usernetes
-docker rmi usernetes_node
-docker build --no-cache -t usernetes_node .
+
+# Clean up state from any previous run. "make down-v" is not reliable here,
+# so remove the containers, network, and volumes directly.
+docker rm -f $(docker ps -aq --filter "name=usernetes") 2>/dev/null
+docker network rm usernetes_default 2>/dev/null
+docker volume rm usernetes_node-var usernetes_node-opt usernetes_node-etc 2>/dev/null
+
+# Remove the previous image and rebuild. The compose file pins
+# "image: usernetes_node" with no build section, so "make up" below
+# will not trigger a second, redundant "docker compose build".
+docker rmi usernetes_node 2>/dev/null
+docker build -t usernetes_node .
 cd -
 
 make -C /home/ubuntu/usernetes up
@@ -29,4 +39,3 @@ kubectl label node u7s-$(hostname) ingress-ready=true
 
 echo "Cluster is ready. 🤓"
 # echo "export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig" 
-
