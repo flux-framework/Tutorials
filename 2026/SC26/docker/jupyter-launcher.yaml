@@ -57,6 +57,17 @@
         path: ./module2/02_flux_quantum_braket.ipynb
         icon: ./static/flux-icon.png
   catalog: Notebook
+- title: "Module 2.3: Gang Scheduling with Fluence"
+  description: Fluxion in Kubernetes - gangs that start together or not at all, and a credential-free hybrid pair
+  type: jupyterlab-commands
+  icon: ./static/flux-icon.png
+  source:
+    - label: Flux Tutorial
+      id: 'filebrowser:open-path'
+      args:
+        path: ./module2/03_usernetes_fluence.ipynb
+        icon: ./static/flux-icon.png
+  catalog: Notebook
 
 - title: Flux Framework Portal
   description: Flux Framework portal for projects, releases, and publication.

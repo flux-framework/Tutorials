@@ -1,0 +1,24 @@
+# The same gang asking for more cpu than the node has. Nothing is placed.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: toobig
+spec:
+  completions: 2
+  parallelism: 2
+  completionMode: Indexed
+  template:
+    metadata:
+      labels:
+        fluence.flux-framework.org/group: toobig
+    spec:
+      schedulerName: fluence
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: python:3.12-slim
+          command: ["python", "-c", "print('this never runs')"]
+          resources:
+            requests:
+              cpu: "500"
+              memory: 128Mi
