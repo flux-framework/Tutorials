@@ -1,6 +1,7 @@
 import asyncio
 
 import boto3
+from botocore.exceptions import ClientError
 from jupyterhub.spawner import Spawner
 from traitlets import Bool, Dict, List, Unicode
 
@@ -15,7 +16,13 @@ block_device_mappings = [
         "Ebs": {
             "VolumeSize": desired_root_volume_size_gb,
             "DeleteOnTermination": True,
-            "VolumeType": "gp2",
+            # gp3: constant provisioned performance. gp2 at this size has 768
+            # baseline IOPS and a burst bucket that heavy pulls/builds drain,
+            # which is the mid-session slowdown. For the first-boot slowness,
+            # enable Fast Snapshot Restore on the AMI snapshot before the event.
+            "VolumeType": "gp3",
+            "Iops": 4000,
+            "Throughput": 500,
         },
     }
 ]
@@ -35,6 +42,15 @@ class EC2Spawner(Spawner):
     # The EC2 instance type
     instance_type = Unicode(
         "hpc7g.16xlarge", config=True, help="The EC2 instance type."
+    )
+
+    # Tried in order after instance_type when AWS has no capacity for it
+    # (or does not offer it in the subnet's AZ). Both are 64 Graviton cores
+    # and 128 GiB, so the notebooks work the same on either.
+    fallback_instance_types = List(
+        ["c7g.16xlarge"],
+        config=True,
+        help="Instance types to try, in order, if instance_type has no capacity.",
     )
 
     # Always need the region
@@ -122,7 +138,7 @@ sudo rm -f /etc/profile.d/flux-quantum.sh
 # Clone repository tutorials, expose tutorial notebooks
 # The launcher's icon paths are relative to the launcher file
 LAUNCHER=/usr/local/share/jupyter/lab/jupyter_app_launcher
-git clone --depth 1 -b sc26-tutorial https://github.com/flux-framework/Tutorials /tmp/tutorials
+git clone --depth 1 -b sc26-usernetes-fluence https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2026/SC26/tutorial /home/ubuntu/tutorial
 sudo mkdir -p $LAUNCHER/static
 sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml $LAUNCHER/jp_app_launcher.yaml
@@ -130,6 +146,51 @@ sudo cp /tmp/tutorials/2026/SC26/docker/flux-icon.png $LAUNCHER/static/flux-icon
 
 cp /tmp/tutorials/2026/SC26/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
+
+# fluence needs Kubernetes 1.36. Its PodGroup manifests use the alpha
+# scheduling.k8s.io/v1alpha2 API, which 1.37 replaced with v1alpha3. The AMI's
+# usernetes checkout tracks main (1.37), so pin it here, at boot, to d527e87,
+# the last usernetes commit built for 1.36.1 - no AMI rebuild needed. Then turn
+# the gang API on in kubeadm, the same flags fluence's kind config sets.
+# start-usernetes.sh rebuilds usernetes_node from this checkout and the node
+# reads kubeadm-config.yaml from it, so both stick. This must run BEFORE the
+# docker-compose.yaml copy below: the checkout rewrites that tracked file.
+sudo -u ubuntu git -C /home/ubuntu/usernetes checkout -f d527e87
+grep -q "kindest/node:v1.36.1" /home/ubuntu/usernetes/Dockerfile
+python3 - /home/ubuntu/usernetes/kubeadm-config.yaml <<'KUBEADMPATCH'
+import sys
+path = sys.argv[1]
+s = open(path).read()
+if "GenericWorkload" not in s:
+    api = '''  - name: kubelet-preferred-address-types
+    value: ExternalIP
+'''
+    assert api in s, "usernetes kubeadm-config.yaml changed, update this patch"
+    s = s.replace(api, api + '''  - name: runtime-config
+    value: "scheduling.k8s.io/v1alpha2=true"
+  - name: feature-gates
+    value: "GenericWorkload=true"
+''', 1)
+    cm = '''controllerManager:
+  extraArgs:
+    - name: cloud-provider
+      value: external
+'''
+    assert cm in s, "usernetes kubeadm-config.yaml changed, update this patch"
+    s = s.replace(cm, cm + '''    - name: feature-gates
+      value: "GenericWorkload=true"
+scheduler:
+  extraArgs:
+    - name: feature-gates
+      value: "GenericWorkload=true,GangScheduling=true"
+''', 1)
+    open(path, "w").write(s)
+print("usernetes kubeadm-config.yaml has the gang gates")
+KUBEADMPATCH
+
+# the tutorial's docker-compose.yaml for usernetes (image usernetes_node, no build
+# section, port 80) over the one in the checkout, so "make up" does not rebuild
+cp /tmp/tutorials/2026/SC26/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
 sudo chown -R ubuntu /home/ubuntu/
 
 # We need to stop nginx if it's running
@@ -149,6 +210,11 @@ echo "Running as user $(whoami) in $(pwd)"
 
 # Export all the necessary environment variables for this shell
 {chr(10).join(env_export_cmds)}
+
+# Build the usernetes node image now, in the background, so it is done (or
+# nearly) before anyone runs start-usernetes.sh, which waits on the same
+# lock. The checkout is pinned, so the image is deterministic.
+nohup bash -c 'for i in $(seq 1 60); do docker info >/dev/null 2>&1 && break; sleep 2; done; flock /tmp/usernetes-build.lock docker build -t usernetes_node /home/ubuntu/usernetes' > /home/ubuntu/.usernetes-build.log 2>&1 &
 
 echo "Starting JupyterLab..."
 
@@ -198,25 +264,52 @@ date
                 "Tags": [{"Key": k, "Value": v} for k, v in tags.items()],
             }
         ]
-        try:
-            instance = ec2.create_instances(
-                ImageId=self.ami,
-                InstanceType=self.instance_type,
-                KeyName=self.key_name,
-                BlockDeviceMappings=block_device_mappings,
-                SecurityGroupIds=self.security_group_ids,
-                SubnetId=self.subnet_id,
-                IamInstanceProfile={"Arn": self.iam_instance_profile_arn},
-                TagSpecifications=tag_spec,
-                UserData=self._get_user_data(),
-                MinCount=1,
-                MaxCount=1,
-            )[0]
-        except Exception as e:
-            self.log.error(
-                f"Failed to create EC2 instance for user {self.user.name}: {e}"
-            )
-            raise e
+        # EC2 errors that mean "this type, not right now / not here", where
+        # trying the next type is the right move. Anything else is a real error.
+        retryable = {
+            "InsufficientInstanceCapacity",
+            "InsufficientCapacity",
+            "Unsupported",
+        }
+        candidates = [self.instance_type] + [
+            t for t in self.fallback_instance_types if t != self.instance_type
+        ]
+        instance = None
+        for instance_type in candidates:
+            try:
+                instance = ec2.create_instances(
+                    ImageId=self.ami,
+                    InstanceType=instance_type,
+                    KeyName=self.key_name,
+                    BlockDeviceMappings=block_device_mappings,
+                    SecurityGroupIds=self.security_group_ids,
+                    SubnetId=self.subnet_id,
+                    IamInstanceProfile={"Arn": self.iam_instance_profile_arn},
+                    TagSpecifications=tag_spec,
+                    UserData=self._get_user_data(),
+                    MinCount=1,
+                    MaxCount=1,
+                )[0]
+                self.log.info(
+                    f"User {self.user.name}: launched {instance_type} instance {instance.id}"
+                )
+                break
+            except ClientError as e:
+                code = e.response.get("Error", {}).get("Code", "")
+                if code in retryable and instance_type != candidates[-1]:
+                    self.log.warning(
+                        f"User {self.user.name}: no {instance_type} capacity ({code}), trying next type"
+                    )
+                    continue
+                self.log.error(
+                    f"Failed to create EC2 instance for user {self.user.name}: {e}"
+                )
+                raise
+            except Exception as e:
+                self.log.error(
+                    f"Failed to create EC2 instance for user {self.user.name}: {e}"
+                )
+                raise
 
         self.instance_id = instance.id
         self.log.info(f"User {self.user.name}: Started instance {self.instance_id}")

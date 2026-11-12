@@ -1,0 +1,91 @@
+# The modeled resources, in one file. The config that describes them, and the
+# device plugin that advertises them. Apply this right after fluence.yaml and
+# before any pod, so the scheduler and the webhook read the config at their
+# first start and nothing has to be restarted.
+#
+# Upstream fluence keeps these as two files because the device plugin is
+# optional in its design (it only exists to satisfy Kubernetes' own fit check,
+# and could go if that check were disabled). For the tutorial they are one
+# step, so they are one file.
+#
+# The ConfigMap is the single source of truth for the resource types fluence
+# models. The scheduler builds graph vertices from it, the device plugin
+# derives what to advertise from the same document, and the webhook derives
+# the FLUXION_<KEY> environment it injects from the attribute keys. The three
+# cannot drift. Each backend is a resource tree attached under the cluster. A
+# qdevice with a requestable qpu, whose attributes become filterable graph
+# properties and injected environment.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluence-resources
+  namespace: kube-system
+data:
+  resources.yaml: |
+    resources:
+      - type: qdevice
+        name: ibm_fez
+        attributes: ibm
+        with:
+          - type: qpu
+            count: 1
+            with:
+              - type: qubit
+                count: 156
+      - type: qdevice
+        name: ibm_marrakesh
+        attributes: ibm
+        with:
+          - type: qpu
+            count: 1
+            with:
+              - type: qubit
+                count: 156
+    attributes:
+      ibm:
+        vendor: ibm
+        qrmi_type: qiskit-runtime-service
+---
+# Device plugin. Advertises the exotic Fluxion resource types (derived from the
+# resources config above) on every node, so pods can request them via resources
+# and NodeResourcesFit is satisfied.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluence-deviceplugin
+  namespace: kube-system
+  labels: {app: fluence-deviceplugin}
+spec:
+  selector:
+    matchLabels: {app: fluence-deviceplugin}
+  template:
+    metadata:
+      labels: {app: fluence-deviceplugin}
+    spec:
+      priorityClassName: system-node-critical
+      tolerations:
+        - operator: Exists   # run on every node, including tainted/control-plane
+      containers:
+        - name: deviceplugin
+          image: ghcr.io/converged-computing/fluence:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/fluence-deviceplugin"]
+          env:
+            - name: FLUENCE_RESOURCES
+              value: /etc/fluence/resources.yaml
+            - name: FLUENCE_RESOURCE_CAPACITY
+              value: "1000"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: resources
+              mountPath: /etc/fluence
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: resources
+          configMap:
+            name: fluence-resources

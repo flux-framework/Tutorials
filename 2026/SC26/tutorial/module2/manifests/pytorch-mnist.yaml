@@ -4,6 +4,8 @@ metadata:
   name: pytorch-simple
 spec:
   runtimeRef:
+    apiGroup: trainer.kubeflow.org
+    kind: ClusterTrainingRuntime
     name: torch-distributed
   trainer:
     numNodes: 2

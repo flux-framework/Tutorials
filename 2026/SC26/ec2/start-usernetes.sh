@@ -1,8 +1,19 @@
 #!/bin/bash
 
 cd /home/ubuntu/usernetes
-docker rmi usernetes_node
-docker build --no-cache -t usernetes_node .
+
+# Clean up state from any previous run. "make down-v" is not reliable here,
+# so remove the containers, network, and volumes directly.
+docker rm -f $(docker ps -aq --filter "name=usernetes") 2>/dev/null
+docker network rm usernetes_default 2>/dev/null
+docker volume rm usernetes_node-var usernetes_node-opt usernetes_node-etc 2>/dev/null
+
+# The spawner starts this build in the background at boot; the lock makes us
+# wait if it is still going, and otherwise this is an instant cache hit (the
+# usernetes checkout is pinned, so the image is deterministic - no need to
+# rmi and rebuild from scratch). The compose file pins "image: usernetes_node"
+# with no build section, so "make up" below will not build a second time.
+flock /tmp/usernetes-build.lock docker build -t usernetes_node .
 cd -
 
 make -C /home/ubuntu/usernetes up
@@ -29,4 +40,3 @@ kubectl label node u7s-$(hostname) ingress-ready=true
 
 echo "Cluster is ready. 🤓"
 # echo "export KUBECONFIG=/home/ubuntu/usernetes/kubeconfig" 
-
