@@ -130,6 +130,48 @@ sudo cp /tmp/tutorials/2026/SC26/docker/flux-icon.png $LAUNCHER/static/flux-icon
 
 cp /tmp/tutorials/2026/SC26/ec2/start-usernetes.sh /home/ubuntu/start-usernetes.sh
 chmod +x /home/ubuntu/start-usernetes.sh
+
+# fluence needs Kubernetes 1.36. Its PodGroup manifests use the alpha
+# scheduling.k8s.io/v1alpha2 API, which 1.37 replaced with v1alpha3. The AMI's
+# usernetes checkout tracks main (1.37), so pin it here, at boot, to d527e87,
+# the last usernetes commit built for 1.36.1 - no AMI rebuild needed. Then turn
+# the gang API on in kubeadm, the same flags fluence's kind config sets.
+# start-usernetes.sh rebuilds usernetes_node from this checkout and the node
+# reads kubeadm-config.yaml from it, so both stick. This must run BEFORE the
+# docker-compose.yaml copy below: the checkout rewrites that tracked file.
+sudo -u ubuntu git -C /home/ubuntu/usernetes checkout -f d527e87
+grep -q "kindest/node:v1.36.1" /home/ubuntu/usernetes/Dockerfile
+python3 - /home/ubuntu/usernetes/kubeadm-config.yaml <<'KUBEADMPATCH'
+import sys
+path = sys.argv[1]
+s = open(path).read()
+if "GenericWorkload" not in s:
+    api = '''  - name: kubelet-preferred-address-types
+    value: ExternalIP
+'''
+    assert api in s, "usernetes kubeadm-config.yaml changed, update this patch"
+    s = s.replace(api, api + '''  - name: runtime-config
+    value: "scheduling.k8s.io/v1alpha2=true"
+  - name: feature-gates
+    value: "GenericWorkload=true"
+''', 1)
+    cm = '''controllerManager:
+  extraArgs:
+    - name: cloud-provider
+      value: external
+'''
+    assert cm in s, "usernetes kubeadm-config.yaml changed, update this patch"
+    s = s.replace(cm, cm + '''    - name: feature-gates
+      value: "GenericWorkload=true"
+scheduler:
+  extraArgs:
+    - name: feature-gates
+      value: "GenericWorkload=true,GangScheduling=true"
+''', 1)
+    open(path, "w").write(s)
+print("usernetes kubeadm-config.yaml has the gang gates")
+KUBEADMPATCH
+
 # the tutorial's docker-compose.yaml for usernetes (image usernetes_node, no build
 # section, port 80) over the one in the checkout, so "make up" does not rebuild
 cp /tmp/tutorials/2026/SC26/ec2/docker-compose.yaml /home/ubuntu/usernetes/docker-compose.yaml
