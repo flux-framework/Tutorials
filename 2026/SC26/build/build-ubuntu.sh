@@ -348,6 +348,48 @@ sysctl net.ipv4.ip_unprivileged_port_start   # confirm it reads 0
 # Clone usernetes and usernetes-python
 git clone https://github.com/rootless-containers/usernetes ~/usernetes
 
+# fluence needs Kubernetes 1.36. Its PodGroup manifests use the alpha
+# scheduling.k8s.io/v1alpha2 API, which 1.37 replaced with v1alpha3. usernetes
+# main is on 1.37, so check out d527e87, the last usernetes commit built for
+# 1.36.1. The whole tree is pinned, not only the base image. The 1.37 update
+# also changed kubeadm-config.yaml, and the node does not start containerd
+# with a 1.37 tree on a 1.36 base. Then turn the gang API on in kubeadm, the
+# same flags fluence's kind config sets. start-usernetes.sh rebuilds
+# usernetes_node from this checkout and the node reads kubeadm-config.yaml from
+# it, so both stick.
+git -C ~/usernetes checkout d527e87
+grep -q "kindest/node:v1.36.1" ~/usernetes/Dockerfile
+python3 - ~/usernetes/kubeadm-config.yaml <<'PATCH'
+import sys
+path = sys.argv[1]
+s = open(path).read()
+if "GangScheduling" not in s:
+    api = """  - name: kubelet-preferred-address-types
+    value: ExternalIP
+"""
+    assert api in s, "usernetes kubeadm-config.yaml changed, update this patch"
+    s = s.replace(api, api + """  - name: runtime-config
+    value: "scheduling.k8s.io/v1alpha2=true"
+  - name: feature-gates
+    value: "GenericWorkload=true"
+""", 1)
+    cm = """controllerManager:
+  extraArgs:
+    - name: cloud-provider
+      value: external
+"""
+    assert cm in s, "usernetes kubeadm-config.yaml changed, update this patch"
+    s = s.replace(cm, cm + """    - name: feature-gates
+      value: "GenericWorkload=true"
+scheduler:
+  extraArgs:
+    - name: feature-gates
+      value: "GenericWorkload=true,GangScheduling=true"
+""", 1)
+    open(path, "w").write(s)
+print("usernetes kubeadm-config.yaml has the gang gates")
+PATCH
+
 echo "Done installing docker user"
 sudo chown ubuntu /etc/flux/system/curve.cert
 sudo chown -R ubuntu /home/ubuntu
