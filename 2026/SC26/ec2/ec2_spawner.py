@@ -1,6 +1,7 @@
 import asyncio
 
 import boto3
+from botocore.exceptions import ClientError
 from jupyterhub.spawner import Spawner
 from traitlets import Bool, Dict, List, Unicode
 
@@ -41,6 +42,15 @@ class EC2Spawner(Spawner):
     # The EC2 instance type
     instance_type = Unicode(
         "hpc7g.16xlarge", config=True, help="The EC2 instance type."
+    )
+
+    # Tried in order after instance_type when AWS has no capacity for it
+    # (or does not offer it in the subnet's AZ). Both are 64 Graviton cores
+    # and 128 GiB, so the notebooks work the same on either.
+    fallback_instance_types = List(
+        ["c7g.16xlarge"],
+        config=True,
+        help="Instance types to try, in order, if instance_type has no capacity.",
     )
 
     # Always need the region
@@ -254,25 +264,52 @@ date
                 "Tags": [{"Key": k, "Value": v} for k, v in tags.items()],
             }
         ]
-        try:
-            instance = ec2.create_instances(
-                ImageId=self.ami,
-                InstanceType=self.instance_type,
-                KeyName=self.key_name,
-                BlockDeviceMappings=block_device_mappings,
-                SecurityGroupIds=self.security_group_ids,
-                SubnetId=self.subnet_id,
-                IamInstanceProfile={"Arn": self.iam_instance_profile_arn},
-                TagSpecifications=tag_spec,
-                UserData=self._get_user_data(),
-                MinCount=1,
-                MaxCount=1,
-            )[0]
-        except Exception as e:
-            self.log.error(
-                f"Failed to create EC2 instance for user {self.user.name}: {e}"
-            )
-            raise e
+        # EC2 errors that mean "this type, not right now / not here", where
+        # trying the next type is the right move. Anything else is a real error.
+        retryable = {
+            "InsufficientInstanceCapacity",
+            "InsufficientCapacity",
+            "Unsupported",
+        }
+        candidates = [self.instance_type] + [
+            t for t in self.fallback_instance_types if t != self.instance_type
+        ]
+        instance = None
+        for instance_type in candidates:
+            try:
+                instance = ec2.create_instances(
+                    ImageId=self.ami,
+                    InstanceType=instance_type,
+                    KeyName=self.key_name,
+                    BlockDeviceMappings=block_device_mappings,
+                    SecurityGroupIds=self.security_group_ids,
+                    SubnetId=self.subnet_id,
+                    IamInstanceProfile={"Arn": self.iam_instance_profile_arn},
+                    TagSpecifications=tag_spec,
+                    UserData=self._get_user_data(),
+                    MinCount=1,
+                    MaxCount=1,
+                )[0]
+                self.log.info(
+                    f"User {self.user.name}: launched {instance_type} instance {instance.id}"
+                )
+                break
+            except ClientError as e:
+                code = e.response.get("Error", {}).get("Code", "")
+                if code in retryable and instance_type != candidates[-1]:
+                    self.log.warning(
+                        f"User {self.user.name}: no {instance_type} capacity ({code}), trying next type"
+                    )
+                    continue
+                self.log.error(
+                    f"Failed to create EC2 instance for user {self.user.name}: {e}"
+                )
+                raise
+            except Exception as e:
+                self.log.error(
+                    f"Failed to create EC2 instance for user {self.user.name}: {e}"
+                )
+                raise
 
         self.instance_id = instance.id
         self.log.info(f"User {self.user.name}: Started instance {self.instance_id}")

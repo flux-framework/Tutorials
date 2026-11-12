@@ -15,7 +15,7 @@
 apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
-  name: flux-distributed
+  name: flux-runtime
   labels:
     trainer.kubeflow.org/framework: flux
     trainer.kubeflow.org/webhook-validation: disabled
