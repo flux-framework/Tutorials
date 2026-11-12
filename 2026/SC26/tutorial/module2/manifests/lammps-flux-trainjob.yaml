@@ -5,7 +5,9 @@ metadata:
 spec:
   # Reference the pre-defined runtime by name
   runtimeRef:
-    name: flux-runtime
+    apiGroup: trainer.kubeflow.org
+    kind: ClusterTrainingRuntime
+    name: flux-distributed
   trainer:
     numNodes: 2
     numProcPerNode: 8
