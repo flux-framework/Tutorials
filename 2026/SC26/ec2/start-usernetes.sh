@@ -8,11 +8,12 @@ docker rm -f $(docker ps -aq --filter "name=usernetes") 2>/dev/null
 docker network rm usernetes_default 2>/dev/null
 docker volume rm usernetes_node-var usernetes_node-opt usernetes_node-etc 2>/dev/null
 
-# Remove the previous image and rebuild. The compose file pins
-# "image: usernetes_node" with no build section, so "make up" below
-# will not trigger a second, redundant "docker compose build".
-docker rmi usernetes_node 2>/dev/null
-docker build -t usernetes_node .
+# The spawner starts this build in the background at boot; the lock makes us
+# wait if it is still going, and otherwise this is an instant cache hit (the
+# usernetes checkout is pinned, so the image is deterministic - no need to
+# rmi and rebuild from scratch). The compose file pins "image: usernetes_node"
+# with no build section, so "make up" below will not build a second time.
+flock /tmp/usernetes-build.lock docker build -t usernetes_node .
 cd -
 
 make -C /home/ubuntu/usernetes up
