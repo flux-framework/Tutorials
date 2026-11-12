@@ -122,7 +122,7 @@ sudo rm -f /etc/profile.d/flux-quantum.sh
 # Clone repository tutorials, expose tutorial notebooks
 # The launcher's icon paths are relative to the launcher file
 LAUNCHER=/usr/local/share/jupyter/lab/jupyter_app_launcher
-git clone --depth 1 -b sc26-tutorial https://github.com/flux-framework/Tutorials /tmp/tutorials
+git clone --depth 1 -b sc26-usernetes-fluence https://github.com/flux-framework/Tutorials /tmp/tutorials
 cp -R /tmp/tutorials/2026/SC26/tutorial /home/ubuntu/tutorial
 sudo mkdir -p $LAUNCHER/static
 sudo cp /tmp/tutorials/2026/SC26/ec2/jupyter-launcher.yaml $LAUNCHER/jp_app_launcher.yaml
