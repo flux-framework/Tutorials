@@ -15,7 +15,13 @@ block_device_mappings = [
         "Ebs": {
             "VolumeSize": desired_root_volume_size_gb,
             "DeleteOnTermination": True,
-            "VolumeType": "gp2",
+            # gp3: constant provisioned performance. gp2 at this size has 768
+            # baseline IOPS and a burst bucket that heavy pulls/builds drain,
+            # which is the mid-session slowdown. For the first-boot slowness,
+            # enable Fast Snapshot Restore on the AMI snapshot before the event.
+            "VolumeType": "gp3",
+            "Iops": 4000,
+            "Throughput": 500,
         },
     }
 ]
@@ -194,6 +200,11 @@ echo "Running as user $(whoami) in $(pwd)"
 
 # Export all the necessary environment variables for this shell
 {chr(10).join(env_export_cmds)}
+
+# Build the usernetes node image now, in the background, so it is done (or
+# nearly) before anyone runs start-usernetes.sh, which waits on the same
+# lock. The checkout is pinned, so the image is deterministic.
+nohup bash -c 'for i in $(seq 1 60); do docker info >/dev/null 2>&1 && break; sleep 2; done; flock /tmp/usernetes-build.lock docker build -t usernetes_node /home/ubuntu/usernetes' > /home/ubuntu/.usernetes-build.log 2>&1 &
 
 echo "Starting JupyterLab..."
 
