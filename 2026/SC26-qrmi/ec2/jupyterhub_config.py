@@ -86,11 +86,13 @@ c.EC2Spawner.start_timeout = 300
 
 # The AMI ID for the tutorial user VM. This AMI should have Python, JupyterLab,
 # Usernetes, and all tutorial dependencies pre-installed.
-c.EC2Spawner.ami = "ami-043970c35afd3a127"
+c.EC2Spawner.ami = "ami-032fee97d13452952"
 
 # Instance type for each user's server.
 # 't4g.2xlarge' is what had a maximum fom per core ratio in my experiments
 c.EC2Spawner.instance_type = "hpc7g.16xlarge"
+# Tried in order when AWS has no capacity for the type above.
+c.EC2Spawner.fallback_instance_types = ["c7g.16xlarge"]
 
 # The name of the EC2 key pair for SSH access (for debugging).
 # We should remove this for actual tutorial.
